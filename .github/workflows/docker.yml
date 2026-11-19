@@ -35,6 +35,7 @@ jobs:
             os: windows-latest
             container: ""
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
