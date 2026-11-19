@@ -1,122 +1,139 @@
 # series: ATV600
 # title: Schneider Altivar Process ATV630/650/660/680/6A0/6B0/6L0
-# source: Altivar Process ATV600 Programming Manual EAV64318.11 (03/2023), Diagnostics and Troubleshooting - Error Codes, pp.609-688 (condensed)
+# source: Altivar Process ATV600 编程手册（中文版）EAV64324-14，诊断和故障检修—故障代码；P 至 V 开头的条目为摘要改写，非原文逐字，请以原手册为准
 # aliases: ATV600, ATV630, ATV650, ATV660, ATV680, ATV6A0, ATV6B0, ATV6L0, ALTIVAR PROCESS
-# format: code|name|probable cause|remedy|reset  (reset: power / auto / rsf / hrfc / self)
-ACF1|AFE DC-Caps Error|DC-capacitor overcurrent after prolonged low mains voltage, or AFE modulation at its low limit|Verify mains voltage and its parameter setting|rsf
-ACF2|AFE Current Control Error|Mains voltage interruption|Verify mains voltage; reduce voltage dips|rsf
-ACF3|AFE Line Filter Error|Mains voltage drops during generator operation|Verify mains voltage|rsf
-AFLF|Adv. Function Lock|LevelCtrl Strategy set to Energy Optimized and a run order was given|Contact Schneider Electric|rsf
-ASF|Angle error|Motor phase disconnected, or motor inductance too high during phase-shift measurement|Verify motor phases and maximum allowed current|rsf
-CbF|Circuit Breaker Error|DC bus level inconsistent with breaker start/stop pulse after the mains voltage timeout|Verify breaker pulse logic and mechanical state of the breaker|power
-CFA/CFB/CFC|CabinetCircuit A/B/C Error|Input assigned to the cabinet circuit stayed active longer than its delay|Find the cause; check the connected device, wiring and input assignment|auto
-CFF|Incorrect Configuration|Option module changed or removed; control board swapped for a different rating; inconsistent configuration|Check the option module for errors; restore factory settings or a valid backup|self
-CFI|Invalid Configuration|Configuration loaded via tool or fieldbus is inconsistent|Verify the configuration and load a valid one|self
-CFI2|Conf Transfer Error|Configuration transfer unsuccessful, interrupted, or configuration incompatible|Load a compatible configuration, transfer again with the PC tool, or restore factory settings|self
-CFI3|Pre-settings Transfer Error|Configuration transfer unsuccessful or interrupted|Contact Schneider Electric|self
-CHF|Cabinet Overheat Error|Cabinet thermal switch active, fans on, but no fan feedback (RUN state only)|Check cabinet fans and wiring, enclosure temperature and thermoswitch setting|auto
-CnF|Fieldbus Com Interrupt|Communication between fieldbus module and PLC interrupted|Check EMC, wiring and timeout; replace the option module; contact Schneider Electric|auto
-COF|CANopen Com Interrupt|Communication interrupted on the CANopen bus|Verify the bus and timeout; see the CANopen manual|auto
-COPF|Cooling Pump Error|Cooling pump not working|Contact Schneider Electric|auto
-CrF1|Precharge Capacitor|Charging circuit fault, damaged charging resistor, or supply voltage too low|Power cycle; check internal connections, supply voltage and undervoltage handling; contact Schneider Electric|hrfc
-CrF3|AFE contactor fdbk error|AFE mains contactor feedback does not match the command (400 ms on run, 500 ms on stop)|Check EMC (cable routing, grounding, shielding) and motor cables; find the faulty AFE brick in the fault history; contact Schneider Electric|power
-CSF|Channel Switch Error|Switch to an invalid channel|Verify function parameters|self
-DCRE|DC Bus Ripple Error|Persistent DC bus ripple or damaged DC capacitors|Power cycle; check input filter, mains wiring and internal connections; contact Schneider Electric|power
-drYF|Dry Run Error|Dry-run monitoring triggered; pump cannot restart before DryRun Restart Delay|Ensure the pump is primed, no suction air leak; verify monitoring settings|auto
-EEF1|EEPROM Control|Internal memory error on the control block|Check EMC; switch off; restore factory settings; contact Schneider Electric|power
-EEF2|EEPROM Power|Internal memory error on the power board|Check EMC; switch off; restore factory settings; contact Schneider Electric|power
-EPF1|External Error|External device event, external error via embedded Ethernet, external circuit fault, or corrupted Ethernet config file|Remove the external cause; factory-set the Ethernet config or change IP mode|auto
-EPF2|Fieldbus Error|Event triggered by an external device (user defined)|Remove the external cause|auto
-EtHF|Embd Eth Com Interrupt|EtherNet/IP or Modbus TCP communication interrupted|Verify the communication bus; see the Ethernet manual|auto
-FCF1|Out Contact Closed Error|Output contactor stays closed when opening conditions are met|Verify the contactor, its wiring and the feedback wiring|power
-FCF2|Out Contact Opened Error|Output contactor stays open when closing conditions are met|Verify the contactor, its wiring and the feedback wiring|auto
-FDR1|FDR 1 Error|Embedded Ethernet FDR error; drive-PLC link interrupted; config file incompatible, empty or invalid; rating mismatch|Verify the drive-PLC connection and workload; restart the configuration transfer|auto
-FDR2|FDR 2 Error|Ethernet fieldbus module FDR error; link interrupted; config file incompatible or corrupted; rating mismatch|Verify the drive-PLC connection and workload; restart the configuration transfer|auto
-FFDF|Fan Feedback Error|Fan speed too low for more than 10 minutes|Replace the fan|auto
-FWEr|Firmware Update Error|Error in the firmware update function|Contact Schneider Electric|self
-HCF|Boards Compatibility|Option module changed while the pairing password is enabled|Refit the original module, or confirm the change with the pairing password|self
-HFPF|High Flow Error|High flow monitoring triggered|Verify system flow capacity; check for pipe burst; verify monitoring settings|auto
-IDLF|Egy Saving Exit Error|Drive not turned on after Egy Saving Timeout|Verify supply, contactor and drive wiring, and the timeout|auto
-IFA/IFB/IFC/IFd|MonitorCircuit A/B/C/D Error|Input assigned to the monitoring circuit stayed active longer than its delay|Verify the device, wiring and input assignment|auto
-iHF|Input Overheating|AFE brick temperature too high|Check ventilation and ambient temperature; let it cool before restart|auto
-ILF|Internal Link Error|Communication lost between an option module and the drive|Check EMC and connections; replace the option module; contact Schneider Electric|power
-InF0|Internal Error 0|Control board microprocessor communication lost; invalid power board rating|Contact Schneider Electric|power
-InF1|Internal Error 1|Power board rating invalid|Contact Schneider Electric|power
-InF2|Internal Error 2|Power board incompatible with control software|Contact Schneider Electric|power
-InF3|Internal Error 3|Internal communication error (e.g. overloaded 10 V analog supply)|Check control terminal wiring; contact Schneider Electric|power
-InF4|Internal Error 4|Internal data inconsistent|Contact Schneider Electric|power
-InF6|Internal Error 6|Option module, terminal module or Ethernet adapter not recognized|Verify option compatibility; seat terminal modules with power off|power
-InF7|Internal Error 7|Communication with the control board CPLD lost|Contact Schneider Electric|power
-InF8|Internal Error 8|Internal power supply incorrect|Contact Schneider Electric|power
-InF9|Internal Error 9|Current measurement circuit error|Contact Schneider Electric|auto
-InFA|Internal Error 10|Input stage not operating correctly|Contact Schneider Electric|power
-InFb|Internal Error 11|Internal drive thermal sensor not operating correctly|Contact Schneider Electric|auto
-InFC|Internal Error 12|Internal current supply error|Contact Schneider Electric|power
-InFD|Internal Error 13|Differential current deviation|Check the DigiLink cable (GG45); contact Schneider Electric|hrfc
-InFE|Internal Error 14|Internal microprocessor error|Verify the error can be cleared; contact Schneider Electric|power
-InFF|Internal Error 15|Serial flash memory format error|Contact Schneider Electric|power
-InFG|Internal Error 16|Communication or internal fault in the output relay option module|Check the slot connection; replace the option module|power
-InFH|Internal Error 17|Communication or internal fault in the digital/analog I/O extension module|Check the slot connection; replace the module|power
-InFk|Internal Error 20|Option module interface board error|Contact Schneider Electric|power
-InFl|Internal Error 21|Real-time clock error|Contact Schneider Electric|power
-InFM|Internal Error 22|Embedded Ethernet adapter error|Verify the Ethernet port connection; contact Schneider Electric|power
-InFN|Internal Error 23|Communication lost between control block and AFE/BU bricks|Contact Schneider Electric|power
-InFP|Internal Error 25|Control board hardware and firmware versions incompatible|Update the firmware package; contact Schneider Electric|power
-InFr|Internal Error 27|CPLD diagnostics error|Contact Schneider Electric|power
-InFS|Internal Error 28|AFE brick error|Contact Schneider Electric|power
-InFt|Internal Error 29|Power unit / inverter brick error|Contact Schneider Electric|power
-InFU|Internal Error 30|Rectifier brick error, or PHF triggered while the DC bus was charging|Power cycle; if PHF is displayed instead, follow the PHF instructions|power
-InFV|Internal Error 31|Brick architecture error (brick unavailable)|Contact Schneider Electric|auto
-iPPF|Inlet Pressure Error|Inlet pressure monitoring triggered|Search for the cause of low inlet pressure; verify settings|auto
-JAMF|Anti Jam Error|Anti-jam sequences exceeded in the time window|Remove clogging from the impeller; verify settings|auto
-LCF|Input Contactor|Drive not switched on before the mains timeout (LCt)|Verify the input contactor, wiring and the LCt timeout|auto
-LCHF|High Level Error|Maximum level switch active during filling|Verify the LCWH assignment and input wiring|auto
-LCLF|Low Level Error|Minimum level switch active during emptying|Verify the LCWL assignment and input wiring|auto
-LFF1/LFF2/LFF3/LFF4/LFF5|AI1-AI5 4-20 mA loss|Measured current below 2 mA on the analog input|Verify analog input connections and the LFL setting|auto
-LKON|ON Lock Error|External device not ready on the ON lock input|Verify the external device|auto
-MdLF|MultiDrive Link Error|Link interrupted while running, or configuration inconsistent|Check the network and the multi-drive configuration|auto
-MFF|Mains Freq Out Of Range|AFE mains frequency out of range|Verify the mains frequency|rsf
-MOF|Module Overheat|Cabinet temperature too high for more than 10 minutes|Verify cabinet cooling|auto
-MPDF|M/P Device Error|Device missing from the MultiDrive Link|Check the communication network|auto
-mpLF|Lead Pump Error|Selected lead pump unavailable while running|Verify pump availability input (e.g. MPI1 for pump 1)|auto
-ObF|DC Bus Overvoltage|Deceleration too short or load too high; mains too high|Increase deceleration time; consider decel ramp adaptation; verify mains voltage|auto
-ObF2|AFE Bus unbalancing|DC bus unbalance; mains too high; regenerative power too high|Verify mains voltage; contact Schneider Electric|auto
-OCF|Overcurrent|Motor data incorrect; inertia or load too high; mechanical lock|Verify motor data, sizing and mechanism; reduce current limit or raise switching frequency|power
-OHF|Drive Overheating|Drive temperature too high|Check motor load, ventilation and ambient temperature; let the drive cool before restart|auto
-OLC|Process Overload|Process overload|Remove the cause; verify process overload settings|auto
-OLF|Motor Overload|Excessive motor current|Check motor thermal settings and load; let the motor cool; verify ITH, THT, TTD, OLL|auto
-OPF1|Single Output Phase Loss|One output phase lost|Verify the drive-to-motor wiring|auto
-OPF2|Output Phase Loss|Motor not connected or too small; output contactor open; current instability|Verify wiring; adjust OPL for an output contactor or low-power motor; optimize UFr, UnS, nCr and run autotune|auto
-OPHF|Out Pressure High|High outlet pressure|Search for the cause of high pressure; verify settings|auto
-OPLF|Out Pressure Low|Low outlet pressure|Check for a broken outlet pipe; find the cause of low pressure; verify settings|auto
-OSF|Supply Mains Overvoltage|Mains voltage too high or disturbed|Verify the supply mains voltage|auto
-P24C|Cab I/O 24V Error|DI58 24 V monitoring fails (not wired to X231, or used by another function)|Verify X231 wiring to DI58; reassign the input if needed|auto
-PCPF|PumpCycle Start Error|Too many start sequences in the time window|Find the cause of repetitive starts; verify settings|auto
-PFMF|PID Feedback Error|Feedback outside the allowed range around setpoint during the time window|Check pipes, leaks, discharge valve; verify settings|auto
-PGLF|Program Loading Error|Program loading error|Contact Schneider Electric|self
-PGrF|Program Running Error|Program running error|Contact Schneider Electric|power
-PHF|Input phase loss|Supply fault or blown fuse; missing phase; 3-phase drive on single-phase supply; unbalanced load|Verify power and fuses; use a 3-phase supply; disable IPL for single-phase or DC bus supply|self
-PLFF|Pump Low Flow Error|Low flow monitoring triggered|Verify the discharge valve; check for damaged pipes; find the cause of low flow|auto
-SAFF|Safety Function Error|Debounce exceeded; internal hardware error; STOA and STOB differ for more than 1 s|Verify STOA and STOB wiring; contact Schneider Electric|power
-SCF1|Motor short circuit|Short circuit or ground fault at the drive output|Check cables and motor insulation; adjust switching frequency; add chokes|hrfc
-SCF3|Ground Short Circuit|Significant ground leakage with several parallel motors|Check cables and insulation; adjust switching frequency; add chokes; check GrFL on long cables|power
-SCF4|IGBT Short Circuit|Power-on test found a short or open on at least one IGBT|Verify the Strt setting; contact Schneider Electric|auto
-SCF5|Motor Short Circuit|Short circuit at the output|Check cables and motor insulation; contact Schneider Electric|auto
-SCF6|AFE ShortCircuit error|AFE rectifier IGBT short; overcurrent from power factor correction switching|Check mains during PFC switching; use PFC with integrated reactors; check AFE cabling|power
-SLF1|Modbus Com Interruption|Modbus communication interrupted|Verify the bus and timeout; see the Modbus manual|auto
-SLF2|PC Com Interruption|Commissioning software link interrupted|Check the cable and timeout|auto
-SLF3|HMI Com Interruption|Graphic terminal link interrupted for more than 2 s during command/reference|Check the terminal connection and timeout|auto
-SOF|Motor Overspeed|Instability or high load; contactor not closed before run; speed above 110 % of TFR|Verify motor settings and sizing; close contacts before run; keep TFR at least 110 % of HSP|rsf
-SPFC|Security Files Corrupt|Security files corrupted or missing|Power off; the file is recreated at next power-on with default security settings|power
-StF|Motor Stall Error|Output frequency below stall frequency and current above stall current for longer than the stall time|Check for mechanical blocking and overload; verify STP settings|auto
-t2CF/t3CF/t4CF/t5CF|AI2-AI5 Thermal Sensor Error|Open or short circuit on the AI sensor|Verify the sensor and wiring; replace the sensor; verify AIxT|auto
-tFA/tFB|MotorWinding A/B Error|Winding thermal input active longer than its delay|Verify thermal switch and wiring; check load and ambient; let the motor cool|auto
-tFC/tFD|MotorBearing A/B Error|Bearing thermal input active longer than its delay|Verify thermal switch and wiring; check load and ambient; let the motor cool|auto
-tH2F/tH3F/tH4F/tH5F|AI2-AI5 Th Level Error|High temperature measured on the AI sensor|Find the overheating cause; verify monitoring settings|auto
-tJF|IGBT Overheating|Power stage overheating|Check sizing; lower switching frequency; increase ramp time; lower current limit|auto
-tJF2|AFE IGBT over-heat error|Rectifier IGBT overheating|Check sizing; clean the cooling channel and filter mats|auto
-tnF|Autotuning Error|Motor unsuitable or not connected; motor not stopped during tuning|Verify compatibility and connection; keep the output contactor closed and the motor stopped; reduce MCr for reluctance motors|rsf
-ULF|Process Underload|Process underload|Remove the cause; verify underload settings|auto
-UrF|AFE Mains Undervoltage|Low DC bus from mains undervoltage or AFE overload|Verify mains voltage; check sizing|self
-USF|Supply Mains UnderV|Supply too low or transient dips|Verify voltage and undervoltage handling (USb)|self
-vcf|VxCtrl Error|Invalid power/speed curve, or warning still present after the error delay (VCFD)|Verify the preset curve parameters (PST); verify VCSJ and VCSK|auto
+# format: code|name|cause|remedy|reset  (reset: power / auto / rsf / hrfc / self)
+ACF1|AFE调制率故障|电源电压过低状态的持续时间过长；如果激活了直流升压功能，则输出功率为高|检查电源电压值、质量和稳定性；检查电源电压的额定值；直流升压处于活动状态： 检查输出电流/功率限制参数|rsf
+ACF2|AFE电流控制故障|电源电压中断。|检查电源电压值；降低压降|rsf
+ACF3|AFE 滤波器故障|处于发电机模式时电源电压下降。|检查电源电压稳定性|rsf
+AFLF|高级功能锁定故障|[液位控制策略] LCST 设置为 [能效优化] ADV 并发出运行命令。|请与您当地的 Schneider Electric 代表联系|rsf
+ASF|角度错误|在移相夹角测量过程中，同步电机控制律将触发此错误；电机相线已断开；电机电感过高；当给定值通过 0 时，速度环设置错误。|检查电机相位；检查设备允许的最大电流；检查速度环参数；使用 [电流水平对齐] ACR 提高校准电流水平；更改 [夹角设置类型] AST 选定项|rsf
+CbF|断路器故障|配置的超时 [进线接触器动作超时] LCT 过后，直流母线电压水平与断路器逻辑控制（启动或停止脉冲）相比不匹配。；电机断路器出现缺陷。|检查断路器逻辑控制（启动和停止的脉冲时间）；检查断路器的机械状态；检查 [DC 母线电压] VBUS 和 [电源电压] ULN 参数的测量值|power
+CFA|柜机电路A故障|监控功能检测到了一个错误。 当检测到的错误持续时间超过 [机柜电路A延时] CFDA 时，分配给 [机柜电路A分配] CFAA 的数字输入将被激活。|确定检测的原因；检查连接的设备（门开关、热开关等）及其接线；检查 [机柜电路A分配] CFAA 参数分配|auto
+CFB|柜机电路B故障|监控功能检测到了一个错误。 当检测到的错误持续时间超过 [机柜电路B延时] CFDB 时，分配给 [机柜电路B 分配] CFAB 的数字输入将被激活。|确定检测的原因；检查连接的设备（门开关、热开关等）及其接线；检查 [机柜电路B 分配] CFAB 参数分配|auto
+CFC|柜机电路C故障|监控功能检测到了一个错误。 当检测到的错误持续时间超过 [机柜电路C延时] CFDC 时，分配给 [机柜电路C分配] CFAC 的数字输入将被激活。|确定检测的原因；检查连接的设备（门开关、热开关等）及其接线；检查 [机柜电路C分配] CFAC 参数分配|auto
+CFF|错误的配置|上电时，设备将继续执行自检并检查其配置。 如果配置不正确，则将触发 [错误配置] CFF 错误。；选件模块被更换或移除。|确认所有选件模块都已正确插入选件模块插槽中；检查选件模块上未出现检测出错误；如果允许，返回到出厂设置或恢复备份配置|self
+CFI|无效的配置|配置无效。 通过调试工具或现场总线加载到设备中的配置不一致。；参数值无效。；已插入 BACnet IP 选件模块，且 [控制模式] CHCF 已设置为 [I/O模式] IO。|检查已加载的配置；加载有效配置|self
+CFI2|配置传输错误|向驱动器的配置传输不成功或中断。；下载的配置与驱动器不兼容。|检查以前加载的配置；载入兼容配置；使用 PC 软件调试工具传输兼容的配置；执行出厂设置|self
+CFI3|预设置传输故障|向驱动器的配置传输不成功或中断。|请与您当地的 Schneider Electric 代表联系|self
+CHF|机柜过热故障|机柜热开关处于激活状态，机柜风扇已开启，但无风扇反馈。；配有机柜 IO 的设备的数字输入 DI50 和 DI51 被配置为执行机柜温度监控。 如果机箱热开关在过热时打开，将会触发 [机柜过热故障] CHF。；此错误只能在运行状态下触发。 在其他状态下，将会激活 [机柜过热警告] CHA。|检查机柜风扇及其接线；检查机箱中的温度是否太高；检查热开关的设置（必须为 60 °C (140 °F)）|auto
+CnF|现场总线通信中断|现场总线模块的通信中断。；当现场总线模块与管理器 (PLC) 之间的通信中断时，将触发此错误。|检查设备（变频器、PLC、开关、中继器……）上的通讯设置；检查有无重复的通讯地址；检查环境（电磁兼容性）；检查现场总线接线（连续性、电缆类型、接地和屏蔽）；检查超时设置；更换选件模块；[Ethernet 超时] TOUT 应设置为 10 秒；请参考现场总线用户手册；请与您当地的 Schneider Electric 代表联系|auto
+COF|CANopen 通信中断|CANopen® 现场总线上的通信中断。|检查设备（变频器、PLC、开关、中继器……）上的通讯设置；检查有无重复的通讯地址；检查环境（电磁兼容性）；检查现场总线接线（连续性、接地和屏蔽）；检查终端电阻器（每个末端都有此电阻器和值）；检查超时设置；参阅 CANopen® 用户手册；更换选件模块；请与您当地的 Schneider Electric 代表联系|auto
+COPF|冷却泵故障|在系统的至少一个电源模块上，出现 [冷却水泵警告] COPA 警告，并且持续 10 分钟以上。；冷却泵无法正常工作。；冷却回路无法正常工作。|请与您当地的 Schneider Electric 代表联系|auto
+CrF1|预充电故障|检测到充电电路控制错误。；充电电路损坏。；供电电源不稳定或过低。|关闭变频器，然后重新开启；检查 [直流母线供电类型] DCBS 的设置；检查电源电压和稳定性；检查 [欠压处理] USB- 菜单的参数；请与您当地的 Schneider Electric 代表联系|power
+CrF3|AFE接触器反馈故障|可在不同条件（启动/停止/操作过程中）下触发 CRF3 错误。 将在每个 AFE/LH 模块中分析此错误，这些模块相互独立。 如果 AFE 电源接触器反馈信号与内部 AFE 电源接触器命令不匹配，则将触发 CRF3 错误。；执行运行命令时：当 AFE 模块内部控制装置发送“主接触器开启命令”后，必须在 400 毫秒内收到“主接触器开启反馈”。|检查电源接触器反馈电路；检查电源接触器的机械状态；将图形显示终端连接到 AFE 模块，确认哪个 AFE 模块检测到 CRF3 错误|power
+CSF|通道切换检测出错误|选择的通道无效。；如果设备已切换到表示通道无效的配置，则可能会触发此错误。|检查功能参数|self
+DCRE|直流母线纹波错误|在直流母线或直流母线电容器损坏时检测到持续的纹波电流。|关闭变频器，然后重新开启；检查输入滤波器的行为是否正确；检查主电源接线；检查内部连接；请与您当地的 Schneider Electric 代表联系|power
+drYF|干泵运行检测出错误|干泵运行监控功能检测到了一个错误。；触发错误后，即使已清除检测到的错误，也无法在 [干泵运行重启延时] DRYR 结束前重启泵。|检查泵已充分泡水；检查入水管道有无漏气；检查监控功能的设置|auto
+EEF1|控制EEPROM故障|检测到控制电子部件的内部存储器存在错误。|检查环境（电磁兼容性）；关闭变频器，然后重新开启；还原出厂设置；请与您当地的 Schneider Electric 代表联系。|power
+EEF2|功率Eeprom故障|检测到了电源板的内存错误。|检查环境（电磁兼容性）；关闭变频器，然后重新开启；还原出厂设置；请与您当地的 Schneider Electric 代表联系。|power
+EPF1|外部检测出错误|如果已配置为 [外部故障分配] ETF 的数字输入处于活动状态，则将显示错误消息。；外部错误已由外部设备触发，具体取决于用户。；由嵌入式以太网触发的外部错误。|消除外部错误的原因；检查 [外部故障分配] ETF 参数的设置；执行以太网配置的出厂设置或修改 IP 模式。|auto
+EPF2|现场总线检测出外部错误|检测到现场总线模块外部错误。；由外部设备触发的事件，由应用引起。；错误由现场总线或应用程序引起。|消除外部错误的原因；检查系统中触发了错误消息的外部电路；检查导致出现错误消息的 PLC 程序；检查通信参数；使用调试软件 [现场总线错误] EPF2 参数进行监控。|auto
+EtHF|嵌入式以太网通信中断|Modbus TCP/Ethernet IP 总线上的通信中断。|检查设备上的通信设置；检查有无重复的通讯地址；检查环境（电磁兼容性）；检查现场总线接线（连续性、电缆类型、接地和屏蔽）；检查超时；检查以太网客户端状态；检查以太网网络负载；请参考以太网用户手册；请与您当地的 Schneider Electric 代表联系。|auto
+FCF1|输出接触器闭合错误|虽然符合打开条件，但输出接触器仍闭合。|检查输出接触器及其接线；检查接触器反馈接线|power
+FCF2|输出接触器打开错误|虽然符合闭合条件，但输出接触器仍打开。|检查输出接触器及其接线；检查接触器反馈接线|auto
+FDR1|内嵌以太网FDR错误|嵌入式以太网 FDR 错误。；设备与 PLC 之间的通信中断。；配置文件不兼容、为空或损坏。；设备额定值与配置文件不一致。|检查设备与 PLC 的连接；检查通信工作负载；重新启动将配置文件从设备传输到 PLC 的操作|auto
+FDR2|以太网选件FDR故障|以太网现场总线模块 FDR 故障。；设备与 PLC 之间的通信中断。；配置文件不兼容、为空或损坏。；设备额定值与配置文件不一致。|检查设备与 PLC 的连接；检查通信工作负载；重新启动将配置文件从设备传输到 PLC 的操作|auto
+FFDF|风扇反馈故障|风机速度过低。；[风扇反馈警告] FFDA 警告已激活 10 分钟以上。|查找挡住风机的东西；检查风机接线；检查风机电源；更换风机|auto
+FWEr|固件升级故障|固件更新功能检测到错误。|请与您当地的 Schneider Electric 代表联系。|self
+HCF|板兼容性|硬件配置错误。；[配对密码] PPI 参数已启用，选件模块已更改。|重新安装原始选件模块；如果已慎重更换该模块，可通过输入 [配对密码] PPI 来确认配置。|self
+HFPF|高流量错误|流量高监控功能检测到了错误。|检查系统是否在其流量范围内运行；检查系统出口处的管道有无爆裂；检查监控功能的设置|auto
+IDLF|空闲模式退出错误|即使 [节能超时] IDLT 已过，在收到启动命令后，设备仍处于 [节能] IDLE 模式。；未达到退出 [节能] IDLE 状态的条件。|检查电源/接触器/设备接线（欠压、过压、开路）；检查并确认超时 [节能超时] IDLT 不会过短|auto
+IFA|监视回路A故障|分配给 [监视回路A分配] IFAA 的数字输入被激活，且时间超过 [监视回路A延时] IFDA。|检查连接的设备及其接线；检查 [监视回路A分配] IFAA 参数分配|auto
+IFB|监视回路B故障|分配给 [监视回路B分配] IFAB 的数字输入被激活，且时间超过 [监视回路B延时] IFDB。|检查连接的设备及其接线；检查 [监视回路B分配] IFAB 参数分配|auto
+IFC|监视回路C故障|分配给 [监视回路C分配] IFAC 的数字输入被激活，且时间超过 [监视回路C延时] IFDC。|检查连接的设备及其接线；检查 [监视回路C分配] IFAC 参数分配|auto
+IFd|监视回路D故障|分配给 [监视回路D分配] IFAD 的数字输入被激活，且时间超过 [监视回路D延时] IFDD。|检查连接的设备及其接线；检查 [监视回路D分配] IFAD 参数分配|auto
+iHF|输入模组过热|AFE 功率模块由热模型监测，有助于防止功率模块受到热损坏。；AFE 功率模块温度过高。|检查设备的通风情况和环境温度；等待设备冷却后再重新启动|auto
+ILF|内部连接错误|选件模块和设备之间的通讯中断。|检查环境（电磁兼容性）。；如果因 EMC 干扰导致意外 [内部连接错误] ILF 错误触发，则将 BACnet IP VW3A3726 模块与模块适配器 VW3A36001 一起使用时，将模块适配器与地线连接所用的接地板更换为一根截面积为 2.5 mm² (AWG 14) 且长度为 10 cm (3.94 in) 的电缆。；检查连接状况；更换选件模块；请与您当地的 Schneider Electric 代表联系。|power
+InF0|内部错误0 (IPC)|内部控制电子 CPU 错误。；控制板的微处理器之间的通信中断。；电源板额定功率无效。|关闭变频器，然后重新开启；请与您当地的 Schneider Electric 代表联系。|power
+InF1|内部错误1（额定值）|如果组件与硬件配置不兼容，将触发 [内部错误1] INF1 错误。；电源板额定功率无效。|请与您当地的 Schneider Electric 代表联系。|power
+InF2|内部错误2（软件）|电源板与控制电子软件不兼容。；电源板更换为备件，未设置为正确的额定功率。|关闭变频器，然后重新开启；请与您当地的 Schneider Electric 代表联系。|power
+InF3|内部错误3（内部通信）|检测出内部通信错误。|检查变频器控制端子接线（供模拟输入的内部10V电源过载）；请与您当地的 Schneider Electric 代表联系。|power
+InF4|内部错误4（制造）|内部数据不一致。|请与您当地的 Schneider Electric 代表联系。|power
+InF6|内部错误6（选件）|无法识别设备中安装的选件模块。；不存在或无法识别可插拔的控制端子模块（如果有）。；无法识别嵌入式以太网适配器（如有）。；设备固件与选件模块不兼容。；选件模块因多次固件更新而损坏。|与变频的固件版本的兼容性；断开设备电源后，插入可插拔型控制端子模块；更新设备固件；请与您当地的 Schneider Electric 代表联系。|power
+InF7|内部错误7（初始化）|与控制板的 CPLD 组件的通讯中断。|请与您当地的 Schneider Electric 代表联系。|power
+InF8|内部错误8（开关电源）|控制电子部件的内部电源受到监控，如果其中之一超出范围，则触发 INF8 错误。|请与您当地的 Schneider Electric 代表联系。|power
+InF9|内部错误9（测量）|检测到了电流测量电路出错。|请与您当地的 Schneider Electric 代表联系。|auto
+InFA|内部错误10（电源）|电源整流部分未正常工作。；外部 24 Vdc 电源电压过高。|检查外部 24 Vdc 电源；请与您当地的 Schneider Electric 代表联系。|power
+InFb|内部错误11（温度）|监控内部温度传感器是否存在短路或开路。；如果检测到短路/开路，则将触发 INFB 错误。；驱动器内部温度传感器未正确工作。|请与您当地的 Schneider Electric 代表联系。|auto
+InFC|内部错误12（内部电流源）|当电流传感器电源监控检测到电流传感器电源上的电压低时，将触发 INFC 错误。|请与您当地的 Schneider Electric 代表联系。|power
+InFD|内部错误13（差动电流）|并联逆变器模块/功率模块上的差分电流偏差。|检查 DigiLink 电缆（橙色 GG45）的连接；检查逆变器模块/功率模块输出与设备输出端子之间的连接|power
+InFE|内部错误14 (CPU)|检测到内部微处理器出错。|检查能否清除错误代码；请与您当地的 Schneider Electric 代表联系。|power
+InFF|内部错误15（闪存）|串行存储器闪存格式错误。|请与您当地的 Schneider Electric 代表联系。|power
+InFG|内部错误16（IO 模块 - 继电器）|选件模块错误。；输出继电器选件模块的通讯中断。；输出继电器选件模块出现内部错误。|检查选件模块是否正确连接到控制电子部件；更换选件模块；请与您当地的 Schneider Electric 代表联系。|power
+InFH|内部错误17（IO 模块 - 标准）|扩展模块错误。；与数字和模拟 I/O 扩展模块的通讯中断。；数字和模拟 I/O 的扩展模块出现内部错误。|检查选件模块是否正确连接到控制电子部件；更换选件模块；请与您当地的 Schneider Electric 代表联系。|power
+InFk|内部错误20（选件接口 PCBA）|选件模块接口板错误。|更换选件模块；请与您当地的 Schneider Electric 代表联系。|power
+InFl|内部错误21 (RTC)|内部实时时钟错误。；图形显示终端与设备之间的通讯中断。；时钟振荡器错误。|更新 固件；更换图形显示终端；请与您当地的 Schneider Electric 代表联系。|power
+InFM|内部错误22（嵌入式以太网）|检测到了嵌入式以太网适配器错误。；外部 24 Vdc 电源不稳定。|检查与以太网端口的连接；检查外部 24 Vdc 电源电压的稳定性；请与您当地的 Schneider Electric 代表联系。|power
+InFN|内部故障23 (模块间连接)|检测到控制电子部件与 AFE 或 BU 模块之间的通信中断。|请与您当地的 Schneider Electric 代表联系。|power
+InFP|内部错误25（兼容性控制板与软件）|控制板硬件版本与固件版本不兼容。|更新固件包；请与您当地的 Schneider Electric 代表联系。|power
+InFr|内部错误27（诊断 CPLD）|CPLD 中的诊断功能已检测到错误。|请与您当地的 Schneider Electric 代表联系。|power
+InFS|内部故障28 (AFE)|检测到 AFE 模块上出现错误。|请与您当地的 Schneider Electric 代表联系。|power
+InFt|内部故障29 (逆变器)|检测到逆变器模块/电源模块上出现错误。|请与您当地的 Schneider Electric 代表联系。|power
+InFU|内部故障30 (整流器)|检测到整流器模块上出现错误，或直流总线充电时，已触发 [输入缺相] PHF 错误。|关闭变频器，然后重新开启。；如果 [输入缺相] PHF 错误代码替换 [内部错误30] INFU，请参阅 [输入缺相] PHF 错误的说明。|power
+InFV|内部故障31 (模组丢失)|检测到内部架构错误（AFE 模块/BUO 不可用）。|与当地的 Schneider Electric 代表联系。|auto
+iPPF|入口压力检测出错误|入口压力监控功能检测到了错误。|查找系统入口出现低压的可能原因；检查监控功能的设置。|auto
+JAMF|防堵塞检测出错误|防堵塞监控功能超出了时间窗口所规定的最大正反转动作时序数|查找叶轮的堵塞物质；检查监控功能的设置|auto
+LCF|输入接触器|时间窗口中允许的序列|检查电源、接触器/断路器和设备之间的接线；确保接触器/断路器上游有供电电源；检查输入接触器/断路器及其接线；检查 [进线接触器动作超时] LCT 超时设置；检查输入接触器/断路器配置|auto
+LCHF|液位高故障|注水过程中已激活最高液位开关|检查参数 [最高液位开关分配] LCWH；检查相应设备数字输入的状态及其接线|auto
+LCLF|低水位故障|排空过程中已激活最低液位开关|检查参数 [最低液位开关分配] LCWL；检查相应设备数字输入的状态及其接线|auto
+LFF1|AI1 4-20信号丢失|模拟输入 AI1 丢失 4-20 mA 信号。；当模拟输入电流低于最小阈值时，将触发此错误。|检查模拟输入的连接。；检查 [AI1 4-20mA丢失] LFL1 参数的设置。|auto
+LFF2|AI2 4-20mA信号丢失|模拟输入 AI2 损失 4-20 mA。；当模拟输入电流低于最小阈值时，将触发此错误。|检查模拟输入的连接。；检查 [AI2 4-20mA信号丢失响应] LFL2 参数的设置。|auto
+LFF3|AI3 4-20信号丢失|模拟输入 AI3 上损失 4-20 mA。；当模拟输入电流低于最小阈值时，将触发此错误。|检查模拟输入的连接。；检查 [AI3 4-20mA丢失] LFL3 参数的设置。|auto
+LFF4|AI4 4-20信号丢失|模拟输入 AI4 丢失 4-20 mA 信号。；当模拟输入电流低于最小阈值时，将触发此错误。|检查模拟输入的连接。；检查 [AI4 4-20mA丢失] LFL4 参数的设置。|auto
+LFF5|AI5 4-20信号丢失|模拟输入 AI5 丢失 4-20 mA 信号。；当模拟输入电流低于最小阈值时，将触发此错误。|检查模拟输入的连接。；检查 [AI5 4-20mA丢失] LFL5 参数的设置。|auto
+LKON|锁定故障|如果分配的数字输入在设备处于运行状态时处于非活动状态，且持续时间超过配置的时间 [锁定延迟] LKOD，则会出现上电锁定功能的锁定事件。；·外部设备未就绪，其中一个受监控的设备打开了电路。；·上电锁定功能的设置值不同于端子上连接的数字输入。|检查分配给上电锁定输入的外部设备。；检查 [锁定分配] LKOS 参数设置。；检查电路中第一个设备上的 24 Vdc 电源，然后检查每个设备监控触点的输出。|auto
+MdLF|MDL故障|MDL 通信在运行时中断。；此功能检测到系统配置中的不一致。（示例：重复的 IP 地址、同一子网中的多个 MDL……）|检查通信网络。；检查 MDL 功能的配置。|auto
+MFF|电源频率超出范围|AFE 模块上的 [电源频率] FAC 超出范围。|检查电源频率。|rsf
+MOF|模块过热|机柜温度过高。；[模块过热] MOA 警告已激活 10 分钟以上。；环境温度过高。；由于进气口或出气口处的空气阻塞，导致气流量较差。；某个风机无法正常工作。|检查机柜的冷却情况。；检查环境温度是否太高。；清洁进气过滤器。；检查气流。；检查风机。|auto
+MPDF|多泵设备丢失|在多泵应用中，MDL 架构上的一个设备缺失。|检查通信网络。|auto
+mpLF|主泵不可用|选定主泵在运行中不可用。|检查对应的变频器数字输入的状态，了解泵可用性信息（例如，对于泵 1，查看 [泵1就绪分配] MPI1）。|auto
+ObF|直流母线过电压|直流总线电压过高。；减速时间太短或驱动性负载太高。；电源电压过高。；制动单元选件无法将“制动能量”转换为热。|延长减速时间。；如果 [减速斜坡自适应] BRA 与应用程序兼容，则对此功能进行配置。；检查电源电压。；检查制动回路（如有）的能力。|auto
+ObF2|AFE母线不平衡|AFE 直流母线不平衡。；AFE 模块无法正常工作。；AFE 模块滤波器损坏。；AFE 模块内的电容器损坏。|检查每个 AFE 模块上的错误历史记录，确定连接图形显示终端的损坏的 AFE 模块。；检查电源电压。；检查 AFE 模块。；请与您当地的 Schneider Electric 代表联系。|auto
+OCF|过电流|已达到过流限制。；[电机数据] MOA- 菜单中的参数不正确。；惯量或负载过高。；机械堵塞。；电机自整定值与连接的电机不匹配。|检查电机参数。；检查电机/变频器/负载的大小。；检查机械装置的状态。；减小 [电流限幅] CLI。；增加开关频率。；继续进行电机自整定。|power
+OHF|设备过热|设备温度过高。；环境温度过高。；由于进气口或出气口处的空气阻塞，导致气流量降低。；某个风机无法正常工作。|检查设备的通风情况和环境温度。；清洁散热器。；清洁进气过滤器。；检查气流。；检查风机。；根据环境条件检查电机负载。；检查外部 48V 电源功能（如果适用）。；等待设备冷却后再重新启动。|auto
+OLC|过程过载|过程过载。；应用中的机械根本原因。；更改了应用的负载循环情况。|检查并消除引起过载的原因。；检查 [过程过载] OLD- 功能的参数。|auto
+OLF|电机过载|检测到电机电流过高时，将触发此错误。；[电机过载] OLF 阈值设置为 [电机热状态] THR 的 118 %。|检查电机热监控的设置。；检查电机负载。 等待电机冷却后再重新起动。；检查以下参数的设置：；◦ [电机热电流] ITH；◦ [电机热保护类型] THT；◦ [电机热阈值] TTD；◦ [电机过热响应] OLL；检查参数 [输出缺相延迟] ODT 的值。|auto
+OPF1|一相输出丢失|设备输出中一相缺失。|检查设备与电机之间的接线。|auto
+OPF2|输出缺相|设备输出处缺失三相。；电机未连接或电机功率太低。；输出接触器打开。；电机电流瞬间不稳定。|检查设备到电机之间的接线，包括连接是否紧固（请参阅相关安装手册）。；如果使用输出接触器，请将 [输出缺相分配] OPL 设置为 [变频器不输出] OAC。；如果设备连接到低功率电机或未连接到电机： 在出厂设置模式下，电机缺相检测已激活，即 [输出缺相分配] OPL 设置为 [触发输出缺相] YES。 禁用电机缺相检测，即 [输出缺相分配] OPL 设置为 [功能未激活] NO。；检查并优化以下参数：[IR定子压降补偿] UFR、[电机额定电压] UNS 和 [电机额定电流] NCR 并执行 [自整定] TUN。|auto
+OPHF|出口压力高|出口压力监控功能检测到了压力过高错误。|查找系统出口出现高压的可能原因。；检查监控功能的设置。|auto
+OPLF|出口压力低|出口压力监控功能检测到了压力过低错误。|检查系统出口处的管道有无损坏。；查找系统出口出现低压的可能原因。；检查监控功能的设置。|auto
+OSF|供电电源过压|当设备未运行且 DC 总线电压超过设备允许的最大值时，将触发此错误。；供电电源电压过高。|检查电源电压。|auto
+P24C|机柜I/O 24V丢失错误|内部电子部件的24V供电缺失；DI58未连接到内部端子X231；DI58被其他机柜功能占用|检查24V电源；确认超时延迟不为0；检查X231与DI58的连接；将占用DI58的功能改到空闲输入|auto
+PCPF|泵循环启动错误|启动次数超出监控时间窗口的上限|排查系统重复启动的原因；检查泵的液压系统分配；核对泵循环监控设置|auto
+PFMF|PID反馈错误|反馈值在时间窗口内偏离设定值的允许范围|检查管路机械故障与漏水；检查排放阀和消防栓是否开启；核对监控设置|auto
+PGLF|程序加载错误|程序加载异常|尝试通过断电复位判断；联系施耐德电气代表|self
+PGrF|程序运行错误|程序运行异常|尝试断电复位；联系施耐德电气代表|power
+PHF|输入缺相|电源不正确或熔断器熔断；一相或多相输入缺失；单相电源用于三相设备；负载不平衡|检查电源接线与连接；检查熔断器；使用三相供电|self
+PLFF|泵低流量错误|泵低流量监控触发|检查排放时阀门是否关闭；检查管道是否损坏；排查出口低流量原因；核对监控设置|auto
+SAFF|安全功能错误|超过反跳时间；内部硬件故障；STOA与STOB状态不一致并持续超过1秒|检查STOA、STOB及+24V输出的接线与屏蔽；消除原因后需断电复位|power
+SCF1|电机短路|输出相间或某相对地短路|检查电机电缆与绝缘；调整开关频率；在变频器与电机之间加装电抗器|power
+SCF3|接地短路|输出对地漏电流大；输出短路或接地；长电缆短路；电机或电缆绝缘故障；电机接口电阻高|检查电缆与电机绝缘；调整开关频率；加装电抗器；长电缆时检查接地故障设置；联系代表|power
+SCF4|IGBT短路|上电自检时至少一个IGBT短路或开路|检查输出短路测试参数设置；联系代表|auto
+SCF5|电机短路|设备输出短路|检查电机电缆与绝缘；联系代表|auto
+SCF6|AFE短路故障|整流器IGBT短路；电网功率因数补偿导致过流；并联AFE固件版本不一致；电源缺相|检查补偿系统切换时的电源电压；检查AFE进线电缆；核对并联模块固件版本；联系代表|power
+SLF1|Modbus通信中断|Modbus端口通信中断|检查Modbus接线与参数设置；检查超时；参考Modbus手册|auto
+SLF2|PC通信中断|与调试软件通信中断|检查连接电缆；检查超时设置|auto
+SLF3|面板通信中断|与图形显示终端通信中断超过2秒|检查终端连接；确保电缆长度不超过10米|auto
+SOF|电机过速|速度反馈或估计速度超过阈值（相当于TFR的110%）；负载不稳定或过大；下游接触器未断开|检查电机参数；检查选型；必要时加制动电阻；运行前断开并确认接触器状态；核对TFR与HSP的匹配|rsf
+SPFC|安全规则文件破坏|安全文件损坏或缺失|断开产品电源，下次上电时将重建安全文件|power
+StF|电机堵转错误|堵转监控触发（低频、大电流且持续时间超限）|检查电机是否机械卡死；排查过载原因；检查监控设置|auto
+t2CF|AI2热传感器错误|AI2连接的温度传感器开路或短路|检查传感器与接线；更换传感器；检查AI2类型设置|auto
+t3CF|AI3热传感器错误|AI3连接的温度传感器开路或短路|检查传感器与接线；更换传感器；检查AI3类型设置|auto
+t4CF|AI4热传感器错误|AI4连接的温度传感器开路或短路|检查传感器与接线；更换传感器；检查AI4类型设置|auto
+t5CF|AI5热传感器错误|AI5连接的温度传感器开路或短路|检查传感器与接线；更换传感器；检查AI5类型设置|auto
+tFA|电机绕组A故障|绕组A分配的数字输入激活且超过延时|检查热开关与接线；检查负载与环境温度，冷却后重启；检查高低电平分配|auto
+tFB|电机绕组B故障|绕组B分配的数字输入激活且超过延时|检查热开关与接线；检查负载与环境温度，冷却后重启；检查高低电平分配|auto
+tFC|电机轴承A故障|轴承A分配的数字输入激活且超过延时|检查热开关与接线；检查负载与环境温度，冷却后重启；检查高低电平分配|auto
+tFD|电机轴承B故障|轴承B分配的数字输入激活且超过延时|检查热开关与接线；检查负载与环境温度，冷却后重启；检查高低电平分配|auto
+tH2F|AI2热水平错误|AI2温度过高|查找过热原因；检查监控设置|auto
+tH3F|AI3热水平错误|AI3温度过高|查找过热原因；检查监控设置|auto
+tH4F|AI4热水平错误|AI4温度过高|查找过热原因；检查监控设置|auto
+tH5F|AI5热水平错误|AI5温度过高|查找过热原因；检查监控设置|auto
+tJF|设备过热|功率级温度过高|检查通风与环境温度；降低开关频率；延长加速时间；减轻负载；考虑更高额定值的变频器|auto
+tJF2|AFE IGBT过热故障|整流器IGBT功率级过热|检查负载、电机与设备选型；检查通风与环境温度；清洁冷却通道及滤垫；检查外部48V电源（如适用）|auto
+tnF|自整定检测出错误|自整定期间触发；电机与变频器不匹配或未连接、未停止；旋转整定异常；长电机电缆；电感参数过低|检查兼容性与接线；自整定时保持运行命令并确保接触器闭合；调整加减速时间、TLFR、TNBR、IDH2、IDL2；将LDS与LQS增至默认值的5倍|rsf
+ULF|过程欠载|应用机械原因或负载循环变化导致欠载|查找并排除欠载原因；检查过程欠载功能参数|auto
+UrF|AFE主电源欠压|电源欠压导致直流母线电压过低；AFE过载|检查电源电压；根据环境条件检查负载、电机与变频器选型|self
+USF|输入欠压|直流母线电压低于配置的电源额定电压；主电源功率过低|检查输入有效值电压及欠压响应参数|self
+vcf|涡流控制故障|错误延迟结束后，无效的功率给定曲线或警告仍然存在|检查预设曲线模式下的功率与速度参数；检查低速和高速度点学习设置|auto
