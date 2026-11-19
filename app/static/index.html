@@ -277,7 +277,7 @@
           '<div class="snip">' + esc(n.snippet) + '</div>';
         (n.files || []).forEach(function (f) {
           if (f.type === 'image') h += '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" src="' + esc(f.url) + '" alt="' + esc(f.orig) + '"></a>';
-          else h += '<div><a href="' + esc(f.url) + '" target="_blank" rel="noopener">打开 ' + esc(f.orig) + '</a></div>';
+          else h += '<div><a href="' + esc(f.url) + (n.page ? '#page=' + esc(n.page) : '') + '" target="_blank" rel="noopener">打开 ' + esc(f.orig) + (n.page ? ' 第' + esc(n.page) + '页' : '') + '</a></div>';
         });
         h += '</div>';
       });

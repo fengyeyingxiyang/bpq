@@ -7,7 +7,9 @@ import io
 import json
 import logging
 import os
+import re
 import tempfile
+from contextlib import asynccontextmanager
 import time
 from collections import defaultdict, deque
 from pathlib import Path
@@ -36,7 +38,15 @@ expert = Expert(settings.data_dir)
 store = LocalStore(settings.local_dir)
 kb.set_local(store.entry_objects())
 
-app = FastAPI(title="Inverter Fault Assistant", docs_url=None, redoc_url=None)
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    """Pick up PDFs copied into local/inbox while the server was down (in the background, never blocks start)."""
+    if store.inbox_dir.is_dir() and any(p.suffix.lower() == ".pdf" for p in store.inbox_dir.iterdir()):
+        asyncio.get_running_loop().run_in_executor(None, store.scan_inbox, kb.resolve_series, _catalog())
+    yield
+
+
+app = FastAPI(title="Inverter Fault Assistant", docs_url=None, redoc_url=None, lifespan=_lifespan)
 
 SAFETY_NOTE = (
     "安全提示：操作前必须断电，并等待直流母线电容放电（施耐德手册要求等待 15 分钟，"
@@ -89,6 +99,53 @@ IMAGE_PROMPT = """这是一张变频器面板、显示屏或故障信息的照�
 DRAWING_PROMPT = """这是一张工业现场的接线图、电气图纸、铭牌或设备照片。请用中文逐条转写图上能看清的文字信息：
 端子编号与线号、信号名称、设备型号、参数、连接关系（如“X1:3 → 变频器 DI1”）。
 看不清的地方写“(看不清)”，不要猜测，不要补充图上没有的内容。只输出转写内容。"""
+
+_PARAM_RE = re.compile(r"\[([^\]\[]{2,40})\]\s*([A-Za-z][A-Za-z0-9]{1,6})?")
+
+
+def _catalog() -> list[dict]:
+    try:
+        return json.loads((Path(settings.data_dir) / "manuals_catalog.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+
+
+_BARE_PARAM_RE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]{2,5}[0-9]?-?)(?![A-Za-z0-9])")
+_NOT_PARAMS = {
+    "PLC", "EMC", "IGBT", "PTC", "CPU", "LED", "USB", "CAN", "PWM", "STO", "DC", "AC", "VDC", "RMS", "EEPROM", "RTC",
+    "ATV", "IP", "IO", "DI", "AI", "AO", "DO", "PT", "NTC", "PID", "FDR", "MDL", "AFE", "BU", "LH", "PCBA", "CPLD",
+    "TCP", "HMI", "LCD", "PC", "RS", "CRC", "SD", "VW", "NO", "NC", "IEC", "UL", "EN", "AWG", "GG",
+}
+
+
+def _fault_params(entries: list[dict]) -> list[str]:
+    """Parameter names/codes mentioned in the fault entries, e.g. '[进线接触器动作超时] LCT' -> both parts.
+
+    The manual explains these parameters on other pages, so searching for them finds the pages
+    the remedy tells the electrician to go and check.
+    """
+    out: list[str] = []
+    for e in entries[:6]:
+        text = f"{e.get('cause', '')} {e.get('remedy', '')}"
+        for m in _PARAM_RE.finditer(text):
+            for g in m.groups():
+                if g and g not in out:
+                    out.append(g)
+        # parameter codes written without brackets (CLI, HRFC, tUn ...): mixed/upper-case short tokens
+        for m in _BARE_PARAM_RE.finditer(text):
+            tok = m.group(1)
+            if (tok.upper().rstrip("-") in _NOT_PARAMS) or tok.islower() or tok in out:
+                continue
+            out.append(tok)
+    return out[:12]
+
+
+def _site_search(codes: list[str], entries: list[dict], text: str, series_id: str | None, limit: int) -> list[dict]:
+    names = " ".join(e.get("name", "") for e in entries[:3])
+    return store.search(
+        codes, f"{text} {names}".strip(), series_id, limit,
+        params=_fault_params(entries), snippet_size=550 if settings.small_model else 800,
+    )
 
 
 # ---------------------------------------------------------------- rate limit
@@ -300,7 +357,7 @@ async def diagnose(
 
     # --- site knowledge (admin-entered notes, drawings, PDF manual pages) ---
     query_text = " ".join(x for x in [code, note, (image_reading or {}).get("description", "")] if x)
-    site_notes = await run_in_threadpool(store.search, use_codes, query_text, series_id, 3 if settings.small_model else 5)
+    site_notes = await run_in_threadpool(_site_search, use_codes, entry_dicts, query_text, series_id, 3 if settings.small_model else 5)
     fams = expert.classify(use_codes, entry_dicts, " ".join(x for x in [note, (image_reading or {}).get("description", "")] if x), 1 if settings.small_model else 2)
 
     # --- compose the answer --------------------------------------------
@@ -575,6 +632,41 @@ def admin_import_jobs() -> list[dict]:
     return importer.jobs.list()
 
 
+@admin.post("/scan-inbox")
+async def admin_scan_inbox() -> dict:
+    """Import files copied into <local>/inbox (works with the PDFs you download yourself)."""
+    results = await run_in_threadpool(store.scan_inbox, kb.resolve_series, _catalog())
+    return {"results": results, "inbox": str(store.inbox_dir)}
+
+
+@admin.get("/inbox")
+def admin_inbox() -> dict:
+    files = []
+    if store.inbox_dir.is_dir():
+        files = sorted(p.name for p in store.inbox_dir.iterdir() if p.is_file())
+    return {"dir": str(store.inbox_dir), "files": files, "status": store.inbox_status}
+
+
+@admin.post("/search-test")
+async def admin_search_test(code: str = Form(""), text: str = Form(""), series: str = Form("")) -> dict:
+    """Run the same retrieval a real query would, and show what the model would be given."""
+    series_id = kb.resolve_series(series) if series.strip() else None
+    codes, approx = kb.extract_codes(code)
+    use = codes or approx
+    entries = []
+    for c in use:
+        entries += kb.lookup(c, series_id)
+    entry_dicts = [e.to_dict() for e in entries[:6]]
+    hits = await run_in_threadpool(_site_search, use, entry_dicts, text, series_id, 8)
+    return {
+        "codes": use,
+        "series": series_id,
+        "params": _fault_params(entry_dicts),
+        "entries": [{"series": e["series"], "code": e["code"], "name": e["name"]} for e in entry_dicts],
+        "hits": hits,
+    }
+
+
 @admin.post("/reload")
 def admin_reload() -> dict:
     """Re-read the manual files in data/ after editing them by hand."""
@@ -598,6 +690,9 @@ def admin_export() -> FileResponse:
 
 
 app.include_router(admin)
+
+
+
 
 _static = BUNDLE_DIR / "app" / "static"
 app.mount("/", StaticFiles(directory=_static, html=True), name="static")

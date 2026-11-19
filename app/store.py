@@ -40,6 +40,23 @@ _CJK = re.compile(r"[一-鿿]+")
 _LATIN = re.compile(r"[a-z0-9]{2,}")
 
 
+_CJK_GAP = re.compile(r"(?<=[一-鿿，。；：、（）【】「」])[ \t]+(?=[一-鿿，。；：、（）【】「」])")
+
+
+def clean_text(text: str) -> str:
+    """PDF extraction often puts spaces between Chinese characters; remove them so search works."""
+    return _CJK_GAP.sub("", text or "")
+
+
+def looks_garbled(text: str) -> bool:
+    """True when extracted text is mostly junk (fonts without a Unicode map give private-use/replacement characters)."""
+    chars = [c for c in text if not c.isspace()]
+    if len(chars) < 200:
+        return False
+    good = sum(1 for c in chars if "一" <= c <= "鿿" or c.isascii() or c in "，。；：、（）【】「」°±×÷·—…“”‘’℃Ω")
+    return good / len(chars) < 0.8
+
+
 def terms(text: str) -> set[str]:
     """Search terms: CJK character bigrams + latin/number words (no external tokenizer needed)."""
     low = (text or "").lower()
@@ -114,6 +131,8 @@ class LocalStore:
         self._pages: dict[str, list[dict]] = {}
         self._items: list[dict] = []
         self._df: Counter = Counter()
+        self._term_cache: dict[tuple, set] = {}
+        self.inbox_status: dict = {"running": False, "last": []}
         self._load()
 
     # ------------------------------------------------------------------ load
@@ -145,11 +164,78 @@ class LocalStore:
             )
             items.append({"doc_id": doc_id, "page": None, "file": None, "text": head, "terms": terms(head)})
             for pg in self._pages.get(doc_id, []):
-                items.append({"doc_id": doc_id, "page": pg["page"], "file": pg.get("file"), "text": pg["text"], "terms": terms(pg["text"])})
+                key = (doc_id, pg.get("file"), pg["page"], len(pg["text"]))
+                t = self._term_cache.get(key)
+                if t is None:
+                    t = self._term_cache[key] = terms(pg["text"])
+                items.append({"doc_id": doc_id, "page": pg["page"], "file": pg.get("file"), "text": pg["text"], "terms": t})
         self._items = items
         self._df = Counter()
         for it in items:
             self._df.update(it["terms"])
+
+    # ----------------------------------------------------------------- inbox
+    @property
+    def inbox_dir(self) -> Path:
+        return self.root / "inbox"
+
+    def scan_inbox(self, resolve_series, catalog: list[dict] | None = None) -> list[dict]:
+        """Import PDFs dropped into <local>/inbox (copy them there, no upload needed).
+
+        The program, not the LLM, reads the file name: a name from the official catalog gives the exact title and
+        series; otherwise the series is detected from the name (ATV320_..., ATV610-...). Files already imported
+        (same content hash) are skipped, so scanning twice is safe. Returns one status dict per new file.
+        """
+        import hashlib
+
+        by_file = {Path(c["url"]).name.lower(): c for c in (catalog or [])}
+        done_path = self.root / "inbox_done.json"
+        with self._lock:
+            if self.inbox_status["running"]:
+                return self.inbox_status["last"]
+            self.inbox_status["running"] = True
+        results: list[dict] = []
+        try:
+            self.inbox_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                done = json.loads(done_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                done = {}
+            for path in sorted(self.inbox_dir.iterdir()):
+                if not path.is_file() or path.suffix.lower() not in PDF_EXT:
+                    continue
+                try:
+                    data = path.read_bytes()
+                    digest = hashlib.sha1(data).hexdigest()
+                    if digest in done and done[digest] in self._docs:
+                        continue
+                    cat = by_file.get(path.name.lower())
+                    stem = re.sub(r"[_\-]+", " ", path.stem).strip()
+                    title = (cat["title"] if cat else stem)[:100]
+                    series = (cat["series"] if cat else resolve_series(path.stem)) or ""
+                    doc = self.create_doc(title, "manual", series, "", f"文件：{path.name}")
+                    try:
+                        info = self.add_file(doc["id"], path.name, data)
+                    except Exception:
+                        self.delete_doc(doc["id"])
+                        raise
+                    done[digest] = doc["id"]
+                    _atomic_write(done_path, json.dumps(done))
+                    note = "已导入"
+                    if info.get("scanned"):
+                        note = "扫描版 PDF，没有可检索文字"
+                    elif info.get("garbled"):
+                        note = "已导入，但文字疑似乱码，检索可能不准"
+                    elif info.get("type") == "pdf":
+                        note = f"已导入 {info.get('pages', 0)} 页"
+                    results.append({"file": path.name, "title": title, "series": series, "ok": True, "message": note})
+                except Exception as exc:  # noqa: BLE001 - one bad file must not stop the rest
+                    msg = str(exc) if isinstance(exc, StoreError) else exc.__class__.__name__
+                    results.append({"file": path.name, "ok": False, "message": f"导入失败：{msg}"})
+        finally:
+            with self._lock:
+                self.inbox_status = {"running": False, "last": results or self.inbox_status.get("last", [])}
+        return results
 
     # --------------------------------------------------------------- entries
     @staticmethod
@@ -327,7 +413,8 @@ class LocalStore:
         elif ext in PDF_EXT:
             pages = self._extract_pdf(data)
             chars = sum(len(p["text"]) for p in pages)
-            info.update(type="pdf", pages=len(pages), scanned=bool(pages) and chars < 30 * len(pages))
+            sample = " ".join(p["text"] for p in pages[: min(len(pages), 400) : max(1, len(pages) // 40)])
+            info.update(type="pdf", pages=len(pages), scanned=bool(pages) and chars < 30 * len(pages), garbled=looks_garbled(sample))
         else:
             text = data.decode("utf-8", errors="replace")
             pages = [{"page": 1, "text": text[:200000]}]
@@ -379,7 +466,7 @@ class LocalStore:
                     text = page.extract_text() or ""
                 except Exception:
                     text = ""
-                pages.append({"page": i, "text": text.strip()})
+                pages.append({"page": i, "text": clean_text(text.strip())})
             return pages
         except Exception as exc:
             raise StoreError("无法读取这个 PDF（可能已加密或损坏）") from exc
@@ -428,46 +515,78 @@ class LocalStore:
         raise KeyError(name)
 
     # ---------------------------------------------------------------- search
-    def search(self, codes: list[str], text: str, series: str | None = None, limit: int = 5) -> list[dict]:
+    def search(
+        self,
+        codes: list[str],
+        text: str,
+        series: str | None = None,
+        limit: int = 5,
+        params: list[str] | None = None,
+        snippet_size: int = 700,
+    ) -> list[dict]:
+        """Find the most relevant documents/pages.
+
+        codes   fault codes: an exact hit on a page is the strongest signal (more when it is a heading line)
+        params  parameter names/codes taken from the matching fault entry (e.g. "LCT", "进线接触器动作超时"),
+                which leads to the manual pages that explain the parameters named in the remedy
+        text    free text (symptom, fault name) matched by weighted word overlap
+        """
+        params = [p.strip() for p in (params or []) if p and p.strip()][:12]
         with self._lock:
             if not self._docs:
                 return []
             rxs = [re.compile(r"(?<![A-Za-z0-9])" + re.escape(c) + r"(?![A-Za-z0-9])", re.I) for c in codes if c]
+            head_rxs = [re.compile(r"(?m)^[\s\W]{0,6}" + re.escape(c) + r"(?![A-Za-z0-9])", re.I) for c in codes if c]
+            code_params = [re.compile(r"(?<![A-Za-z0-9])" + re.escape(p) + r"(?![A-Za-z0-9])") for p in params if p.isascii()]
+            name_params = [p for p in params if not p.isascii() and len(p) >= 3]
             ncodes = {norm(c) for c in codes if c}
             qterms = terms(text)
             n_items = max(1, len(self._items))
             idf = {t: math.log(1 + n_items / (1 + self._df.get(t, 0))) for t in qterms}
             total_w = sum(idf.values()) or 1.0
+            avg_len = sum(len(it["terms"]) for it in self._items) / n_items or 1.0
+            local_kinds = {"wiring", "drawing", "case", "note"}
 
             best: dict[tuple[str, object], tuple[float, dict]] = {}
             for it in self._items:
                 doc = self._docs[it["doc_id"]]
-                if series and doc.get("series") and norm(doc["series"]) != norm(series):
+                doc_series = doc.get("series") or ""
+                if series and doc_series and norm(doc_series) != norm(series):
                     continue
+                body = it["text"]
                 score = 0.0
-                hits = [rx for rx in rxs if rx.search(it["text"])]
+                hits = [rx for rx in rxs if rx.search(body)]
                 for rx in hits:
-                    score += 10 + min(len(rx.findall(it["text"])), 5)
+                    score += 10 + min(len(rx.findall(body)), 5)
+                score += 8 * sum(1 for rx in head_rxs if rx.search(body))
                 if it["page"] is None and ncodes & {norm(c) for c in doc.get("codes", [])}:
                     score += 20
+                p_hits = [rx for rx in code_params if rx.search(body)]
+                score += min(5 * len(p_hits), 15)
+                score += min(4 * sum(1 for n in name_params if n in body), 12)
                 overlap = [t for t in qterms if t in it["terms"]]
                 if len(overlap) >= 2:
                     ratio = sum(idf[t] for t in overlap) / total_w
                     if ratio >= 0.3:
-                        score += ratio * 8
+                        # shorter pages that cover the same words are more focused
+                        score += ratio * 8 * (1.0 + 0.3 * (avg_len / (avg_len + len(it["terms"])) - 0.5))
                 if score <= 0:
                     continue
+                if series and doc_series and norm(doc_series) == norm(series):
+                    score += 3
+                if doc["kind"] in local_kinds:
+                    score += 4  # what this plant recorded outranks the generic manual
                 key = (it["doc_id"], it["page"] if it["page"] is not None else "doc")
-                best[key] = (score, {"item": it, "hits": hits})
+                best[key] = (score, {"item": it, "hits": hits + p_hits})
 
-            # keep the two best items per document, then the best documents
+            # keep the best items per document, then the best documents
             per_doc: dict[str, list] = {}
             for (doc_id, _), (score, payload) in best.items():
                 per_doc.setdefault(doc_id, []).append((score, payload))
             results: list[dict] = []
             for doc_id, lst in per_doc.items():
                 lst.sort(key=lambda x: -x[0])
-                for score, payload in lst[:2]:
+                for score, payload in lst[:3]:
                     doc, it = self._docs[doc_id], payload["item"]
                     results.append({
                         "doc_id": doc_id,
@@ -478,7 +597,7 @@ class LocalStore:
                         "page": it["page"],
                         "file": it["file"],
                         "score": round(score, 2),
-                        "snippet": _snippet(it["text"], payload["hits"]),
+                        "snippet": _snippet(it["text"], payload["hits"], snippet_size),
                         "files": [
                             {"name": f["name"], "orig": f.get("orig", f["name"]), "type": f["type"],
                              "url": f"/api/docs/{doc_id}/files/{f['name']}"}
@@ -487,7 +606,15 @@ class LocalStore:
                         ][:6],
                     })
             results.sort(key=lambda r: -r["score"])
-            return results[:limit]
+            return self._dedupe_pages(results)[:limit]
+
+    @staticmethod
+    def _dedupe_pages(results: list[dict]) -> list[dict]:
+        """Drop weak results that are far below the best one, so the model is not fed filler."""
+        if not results:
+            return results
+        top = results[0]["score"]
+        return [r for r in results if r["score"] >= max(6.0, top * 0.35)]
 
     def stats(self) -> dict:
         with self._lock:

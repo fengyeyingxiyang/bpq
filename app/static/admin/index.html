@@ -93,6 +93,25 @@
         <div id="jobList"></div>
       </div>
       <div class="card">
+        <h2>手册文件夹（自己下载的 PDF 直接拷进去）</h2>
+        <div class="sub">把 PDF 复制到服务器的 <b id="inboxDir">local/inbox</b> 文件夹（Docker 部署是安装目录下的 <b>manuals</b> 文件夹），再点“扫描文件夹”。
+          文件名建议 <b>系列_手册类型_语言.pdf</b>，如 <b>ATV320_编程手册_中文.pdf</b>、<b>ATV340_安装手册_中文.pdf</b>；程序靠文件名里的系列（ATV320 等）识别，与官网原文件名一致也能自动识别。已导入过的文件不会重复导入。</div>
+        <div id="inboxFiles" class="tag" style="margin-top:6px"></div>
+        <div class="actions"><button id="btnScan">扫描文件夹</button></div>
+        <div id="scanMsg"></div>
+      </div>
+      <div class="card">
+        <h2>试搜索（检查找得准不准）</h2>
+        <div class="sub">输入故障代码和/或现象，看程序会把手册的哪几页交给大模型。页码不对说明检索需要调整，把例子发给开发者。</div>
+        <div class="row2">
+          <div><label for="tCode">故障代码</label><input id="tCode" placeholder="如 OCF"></div>
+          <div><label for="tSeries">系列</label><input id="tSeries" list="seriesList" placeholder="如 ATV320"></div>
+        </div>
+        <label for="tText">现象/关键词（可空）</label><input id="tText" placeholder="如 加速时跳 / 编码器接线 / 进线接触器">
+        <div class="actions"><button class="primary" id="btnTest">试搜索</button></div>
+        <div id="testOut"></div>
+      </div>
+      <div class="card">
         <h2 id="docFormTitle">新增资料</h2>
         <form id="docForm" autocomplete="off">
           <label for="dTitle">标题（必填）</label>
@@ -204,7 +223,7 @@
       fill($('eReset'), [['', '（不填）']].concat(Object.keys(j.reset_labels).map(function (k) { return [k, j.reset_labels[k]]; })));
       $('seriesList').innerHTML = j.series.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('');
       showStats(j.stats);
-      loadDocs(); loadEntries(); loadCatalog(); pollJobs();
+      loadDocs(); loadEntries(); loadCatalog(); pollJobs(); loadInbox();
     }).catch(function (e) {
       token = ''; try { sessionStorage.removeItem('adm'); } catch (x) {}
       $('login').classList.remove('hide'); $('app').classList.add('hide');
@@ -327,6 +346,39 @@
       else { loadDocs(); refreshStats(); loadCatalog(); }
     }).catch(function () {});
   }
+
+  // ---- inbox + search test
+  function loadInbox() {
+    api('GET', '/inbox').then(function (j) {
+      $('inboxDir').textContent = j.dir;
+      $('inboxFiles').textContent = j.files.length ? '文件夹里现有：' + j.files.join('、') : '文件夹是空的。';
+    }).catch(function () {});
+  }
+  $('btnScan').onclick = function () {
+    var b = $('btnScan'); b.disabled = true; b.textContent = '扫描中…（大手册要几分钟）';
+    api('POST', '/scan-inbox').then(function (j) {
+      msg('scanMsg', j.results.length ? j.results.map(function (r) { return r.file + '：' + r.message; }).join('\n') : '没有发现新文件。', j.results.some(function (r) { return !r.ok; }) ? 'warn' : 'ok');
+      loadDocs(); refreshStats(); loadInbox();
+    }).catch(function (e) { msg('scanMsg', e.message, 'err'); })
+      .then(function () { b.disabled = false; b.textContent = '扫描文件夹'; });
+  };
+  $('btnTest').onclick = function () {
+    var fd = new FormData(); fd.append('code', $('tCode').value); fd.append('series', $('tSeries').value); fd.append('text', $('tText').value);
+    $('testOut').innerHTML = '<div class="sub">搜索中…</div>';
+    api('POST', '/search-test', fd).then(function (j) {
+      var h = '<div class="tag" style="margin-top:8px">识别代码：' + esc(j.codes.join(', ') || '无') + ' · 系列：' + esc(j.series || '不限') +
+        (j.params.length ? ' · 从条目提取的参数：' + esc(j.params.join('、')) : '') + '</div>';
+      if (!j.hits.length) h += '<div class="msg warn">没有找到相关页。</div>';
+      j.hits.forEach(function (r) {
+        var link = r.files.filter(function (f) { return f.type === 'pdf'; })[0];
+        h += '<div class="item"><b>' + esc(r.title) + '</b> <span class="tag">' + esc(r.kind_label) + (r.series ? ' · ' + esc(r.series) : '') +
+          (r.page ? ' · 第' + esc(r.page) + '页' : '') + ' · 得分 ' + esc(r.score) + '</span>' +
+          (link ? ' <a href="' + esc(link.url) + '#page=' + esc(r.page) + '" target="_blank" rel="noopener">打开该页</a>' : '') +
+          '<div class="tag" style="white-space:pre-wrap;max-height:8em;overflow:auto">' + esc(r.snippet) + '</div></div>';
+      });
+      $('testOut').innerHTML = h;
+    }).catch(function (e) { $('testOut').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; });
+  };
 
   // ---- entries
   var entries = [];
