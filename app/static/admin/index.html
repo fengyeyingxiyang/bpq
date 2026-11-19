@@ -61,6 +61,17 @@
   <h1>知识库管理</h1>
   <div class="sub">录入本厂变频器的接线、图纸、现场故障案例；查询页会自动引用。<a href="/">返回查询页</a></div>
 
+  <div class="card hide" id="adminOff">
+    <h2>管理功能没有启用：程序没有读到 ADMIN_TOKEN</h2>
+    <div id="offDetail" class="sub"></div>
+    <div class="sub" style="margin-top:8px">
+      <b>Docker 部署：</b><br>
+      1. 在 <b>docker-compose.yml 所在的文件夹</b>里编辑 <b>.env</b>，加一行 <b>ADMIN_TOKEN=你的令牌</b>（等号两边不要空格，不要加引号，令牌用字母数字）。<br>
+      2. <b>docker compose restart 不会重新读取 .env</b>，必须执行：<b>docker compose up -d --force-recreate</b><br>
+      3. 检查容器里有没有：<b>docker exec fault-assistant printenv ADMIN_TOKEN</b>（应显示你的令牌）。<br>
+      <b>Linux / Windows 程序：</b>.env 必须放在程序文件<b>旁边</b>，文件名就是 <b>.env</b>（Windows 注意不要变成 .env.txt），改完重启程序。
+    </div>
+  </div>
   <div class="card" id="login">
     <label for="token">管理令牌（服务器 .env 里的 ADMIN_TOKEN）</label>
     <input id="token" type="password" autocomplete="current-password">
@@ -431,6 +442,18 @@
   $('btnReload').onclick = function () {
     api('POST', '/reload').then(function (j) { msg('toolMsg', '已读取：' + j.series + ' 个系列，' + j.entries + ' 条。'); }).catch(function (e) { msg('toolMsg', e.message, 'err'); });
   };
+
+
+  // ---- is admin enabled at all?
+  fetch('/api/health').then(function (r) { return r.json(); }).then(function (h) {
+    if (h.admin) return;
+    var d = h.admin_hint || {};
+    var lines = ['程序类型：' + (d.in_docker ? 'Docker 容器' : d.frozen ? '独立程序' : '源码运行'),
+      '环境变量 ADMIN_TOKEN：' + (d.variable_present ? '存在，但是空的' : '不存在')];
+    (d.env_files || []).forEach(function (f) { lines.push('.env 位置 ' + f.path + '：' + (f.exists ? (f.has_token ? '找到，里面有 ADMIN_TOKEN' : '找到，但里面没有有效的 ADMIN_TOKEN 行') : '不存在')); });
+    $('offDetail').innerHTML = lines.map(esc).join('<br>');
+    $('adminOff').classList.remove('hide');
+  }).catch(function () {});
 
   if (token) enter();
 })();

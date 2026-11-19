@@ -32,6 +32,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("app")
 
 settings = Settings()
+log.info("admin features: %s", "enabled" if settings.admin_token else f"DISABLED (ADMIN_TOKEN empty) {settings.admin_hint()}")
 kb = KnowledgeBase(settings.data_dir)
 llm = LLM(settings)
 expert = Expert(settings.data_dir)
@@ -267,6 +268,7 @@ def health() -> dict:
         "series": len(kb.series),
         "entries": len(kb.entries),
         "admin": bool(settings.admin_token),
+        "admin_hint": None if settings.admin_token else settings.admin_hint(),
         "profile": "small" if settings.small_model else "full",
         "families": len(expert.families),
     }
@@ -399,7 +401,7 @@ async def diagnose(
 def require_admin(request: Request) -> None:
     """Admin API is off unless ADMIN_TOKEN is set; the token is sent as a Bearer / X-Admin-Token header."""
     if not settings.admin_token:
-        raise HTTPException(503, "管理功能未启用：请在 .env 里设置 ADMIN_TOKEN 后重启")
+        raise HTTPException(503, "管理功能未启用：程序没有读到 ADMIN_TOKEN。请看下方的检查提示")
     ip, now = _client_ip(request), time.monotonic()
     fails = _admin_fail[ip]
     while fails and now - fails[0] > 300:

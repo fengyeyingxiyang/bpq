@@ -67,7 +67,10 @@ class Settings:
             load_dotenv()
         self.data_dir = _default_data_dir()
         self.local_dir = _default_local_dir()  # writable: admin-entered knowledge
-        self.admin_token = os.getenv("ADMIN_TOKEN", "").strip()  # empty = admin features disabled
+        raw_token = os.getenv("ADMIN_TOKEN", "").strip()
+        if len(raw_token) >= 2 and raw_token[0] == raw_token[-1] and raw_token[0] in "\"'":
+            raw_token = raw_token[1:-1].strip()  # docker env_file keeps quotes literally; drop them
+        self.admin_token = raw_token  # empty = admin features disabled
         self.max_upload_mb = float(os.getenv("MAX_UPLOAD_MB", "60"))
         self.max_import_mb = float(os.getenv("MAX_IMPORT_MB", "200"))  # official manuals are big
         self.provider = _provider()  # none | anthropic | openai | ollama
@@ -88,6 +91,27 @@ class Settings:
         self.max_image_mb = float(os.getenv("MAX_IMAGE_MB", "10"))
         self.rate_limit_per_min = int(os.getenv("RATE_LIMIT_PER_MIN", "20"))
         self.trust_proxy = _bool("TRUST_PROXY", False)
+
+    def admin_hint(self) -> dict:
+        """Why admin is off, for the login page (shown only when ADMIN_TOKEN is empty)."""
+        files = []
+        for path in dict.fromkeys([APP_DIR / ".env", Path.cwd() / ".env"]):
+            has_key = False
+            if path.is_file():
+                try:
+                    has_key = any(
+                        ln.strip().startswith("ADMIN_TOKEN") and ln.partition("=")[2].strip().strip("\"'") != ""
+                        for ln in path.read_text(encoding="utf-8-sig").splitlines()
+                    )
+                except OSError:
+                    pass
+            files.append({"path": str(path), "exists": path.is_file(), "has_token": has_key})
+        return {
+            "frozen": FROZEN,
+            "in_docker": Path("/.dockerenv").exists(),
+            "variable_present": "ADMIN_TOKEN" in os.environ,
+            "env_files": files,
+        }
 
     def default_model(self) -> str:
         if self.model:

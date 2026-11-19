@@ -178,3 +178,17 @@ def test_redirect_must_stay_on_allowlist():
             asyncio.run(importer.fetch_pdf("https://download.se.com/doc/a.pdf", 1000))
     finally:
         importer.httpx.AsyncClient = real
+
+
+def test_health_explains_disabled_admin(client, monkeypatch):
+    monkeypatch.setattr(main.settings, "admin_token", "")
+    h = client.get("/api/health").json()
+    assert h["admin"] is False and "env_files" in h["admin_hint"]
+    monkeypatch.setattr(main.settings, "admin_token", "test-token")
+    assert client.get("/api/health").json()["admin_hint"] is None
+
+
+def test_token_quotes_stripped(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", '"abc123"')
+    from app.config import Settings
+    assert Settings().admin_token == "abc123"
