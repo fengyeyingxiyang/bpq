@@ -13,13 +13,13 @@ H = {"Authorization": "Bearer test-token"}
 def client():
     main._hits.clear()
     main._admin_fail.clear()
-    c = TestClient(main.app)
-    yield c
-    main._admin_fail.clear()
-    for d in c.get("/api/admin/docs", headers=H).json():
-        c.delete(f"/api/admin/docs/{d['id']}", headers=H)
-    for e in c.get("/api/admin/entries", headers=H).json():
-        c.delete(f"/api/admin/entries/{e['id']}", headers=H)
+    with TestClient(main.app) as c:  # one event loop, so background import tasks keep running
+        yield c
+        main._admin_fail.clear()
+        for d in c.get("/api/admin/docs", headers=H).json():
+            c.delete(f"/api/admin/docs/{d['id']}", headers=H)
+        for e in c.get("/api/admin/entries", headers=H).json():
+            c.delete(f"/api/admin/entries/{e['id']}", headers=H)
 
 
 def png() -> bytes:
@@ -120,3 +120,61 @@ def test_admin_page_served(client):
     r = client.get("/admin/")
     assert r.status_code == 200 and "知识库管理" in r.text
     assert client.get("/admin", follow_redirects=True).status_code == 200
+
+
+def test_import_url_allowlist(client):
+    for bad in ("http://download.se.com/a.pdf", "https://evil.example.com/a.pdf", "https://download.se.com@evil.com/a.pdf",
+                "https://127.0.0.1/a.pdf", "file:///etc/passwd", "https://download.se.com:8443/a.pdf"):
+        r = client.post("/api/admin/import-url", headers=H, data={"url": bad})
+        assert r.status_code == 400, bad
+
+
+def test_import_url_job(client, monkeypatch):
+    import io
+    from pypdf import PdfWriter
+    from app import importer
+
+    w = PdfWriter()
+    w.add_blank_page(200, 200)
+    buf = io.BytesIO()
+    w.write(buf)
+
+    async def fake_fetch(url, max_bytes, timeout=120):
+        return buf.getvalue()
+
+    monkeypatch.setattr(importer, "fetch_pdf", fake_fetch)
+    r = client.post("/api/admin/import-url", headers=H, data={"url": "https://download.se.com/doc/X/x.pdf", "title": "测试手册", "series": "ATV320"})
+    assert r.status_code == 200, r.text
+    import time
+    for _ in range(50):
+        jobs = client.get("/api/admin/import-jobs", headers=H).json()
+        if jobs and jobs[0]["state"] != "running":
+            break
+        time.sleep(0.1)
+    assert jobs[0]["state"] == "done", jobs
+    assert any(d["title"] == "测试手册" and d["kind"] == "manual" for d in client.get("/api/admin/docs", headers=H).json())
+
+
+def test_catalog(client):
+    cat = client.get("/api/admin/catalog", headers=H).json()
+    assert len(cat) >= 6 and all(c["url"].startswith("https://download.") for c in cat)
+
+
+def test_redirect_must_stay_on_allowlist():
+    import asyncio
+    import httpx
+    from app import importer
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "download.se.com":
+            return httpx.Response(302, headers={"location": "https://evil.example.com/x.pdf"})
+        raise AssertionError("must not be requested")
+
+    real = httpx.AsyncClient
+    monkey = lambda **kw: real(transport=httpx.MockTransport(handler), **kw)  # noqa: E731
+    importer.httpx.AsyncClient = monkey
+    try:
+        with pytest.raises(importer.ImportError_):
+            asyncio.run(importer.fetch_pdf("https://download.se.com/doc/a.pdf", 1000))
+    finally:
+        importer.httpx.AsyncClient = real

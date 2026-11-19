@@ -1,6 +1,7 @@
 """Inverter fault-code assistant: FastAPI app serving the API, the mobile web page and the admin API."""
 from __future__ import annotations
 
+import asyncio
 import hmac
 import io
 import json
@@ -19,6 +20,7 @@ from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
 
 from .config import BUNDLE_DIR, Settings
+from . import importer
 from .expert import Expert
 from .kb import RESET_LABELS, KnowledgeBase
 from .llm import LLM, LLMError, parse_json_object
@@ -354,6 +356,7 @@ def require_admin(request: Request) -> None:
         raise HTTPException(401, "管理令牌不正确")
 
 
+_tasks: set = set()
 admin = APIRouter(prefix="/api/admin", dependencies=[Depends(require_admin)])
 
 
@@ -538,6 +541,38 @@ def admin_delete_doc(doc_id: str) -> dict:
     except KeyError:
         raise HTTPException(404, "资料不存在")
     return {"ok": True}
+
+
+@admin.get("/catalog")
+def admin_catalog() -> list[dict]:
+    """Official manuals we know a download link for, with whether they are already imported."""
+    path = Path(settings.data_dir) / "manuals_catalog.json"
+    try:
+        items = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        items = []
+    have = {d["title"] for d in store.list_docs()}
+    return [{**it, "imported": it["title"] in have} for it in items]
+
+
+@admin.post("/import-url")
+async def admin_import_url(url: str = Form(...), title: str = Form(""), series: str = Form("")) -> dict:
+    try:
+        url = importer.check_url(url)
+    except importer.ImportError_ as exc:
+        raise _bad(exc)
+    title = (title.strip() or url.rsplit("/", 1)[-1])[:100]
+    series_id = kb.canonical_series(series) if series.strip() else ""
+    jid = importer.jobs.start(title)
+    task = asyncio.create_task(importer.run_import(store, jid, url, title, series_id, int(settings.max_import_mb * 1048576)))
+    _tasks.add(task)  # keep a reference so the task is not garbage collected
+    task.add_done_callback(_tasks.discard)
+    return {"job": jid}
+
+
+@admin.get("/import-jobs")
+def admin_import_jobs() -> list[dict]:
+    return importer.jobs.list()
 
 
 @admin.post("/reload")

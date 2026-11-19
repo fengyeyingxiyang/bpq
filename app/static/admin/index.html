@@ -79,6 +79,20 @@
     <!-- docs -->
     <section id="tab-docs">
       <div class="card">
+        <h2>官方手册库（一键导入整本手册）</h2>
+        <div class="sub">由服务器从施耐德官网下载 PDF 并逐页建立索引，之后按故障代码、参数名、现象都能检索到具体页。服务器需要能访问外网；下载和读取一本大约需要 1～3 分钟。</div>
+        <div id="catList" class="sub" style="margin-top:8px">加载中…</div>
+        <label for="uUrl">或者粘贴施耐德官方 PDF 链接（download.se.com 等）</label>
+        <input id="uUrl" placeholder="https://download.se.com/doc/…pdf">
+        <div class="row2">
+          <div><label for="uTitle">标题</label><input id="uTitle" placeholder="如：ATV320 安装手册"></div>
+          <div><label for="uSeries">系列</label><input id="uSeries" list="seriesList"></div>
+        </div>
+        <div class="actions"><button id="btnImport">从链接导入</button></div>
+        <div id="importMsg"></div>
+        <div id="jobList"></div>
+      </div>
+      <div class="card">
         <h2 id="docFormTitle">新增资料</h2>
         <form id="docForm" autocomplete="off">
           <label for="dTitle">标题（必填）</label>
@@ -190,7 +204,7 @@
       fill($('eReset'), [['', '（不填）']].concat(Object.keys(j.reset_labels).map(function (k) { return [k, j.reset_labels[k]]; })));
       $('seriesList').innerHTML = j.series.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('');
       showStats(j.stats);
-      loadDocs(); loadEntries();
+      loadDocs(); loadEntries(); loadCatalog(); pollJobs();
     }).catch(function (e) {
       token = ''; try { sessionStorage.removeItem('adm'); } catch (x) {}
       $('login').classList.remove('hide'); $('app').classList.add('hide');
@@ -279,6 +293,40 @@
     }).catch(function (e) { msg('docMsg', e.message, 'err'); })
       .then(function () { btn.disabled = false; btn.textContent = '保存'; });
   });
+
+
+  // ---- official manual catalog / URL import
+  function loadCatalog() {
+    api('GET', '/catalog').then(function (list) {
+      $('catList').innerHTML = list.map(function (c, i) {
+        return '<div class="item"><div class="top"><div><b>' + esc(c.title) + '</b><div class="tag">' + esc(c.series) + '</div></div>' +
+          '<div class="btns">' + (c.imported ? '<span class="tag">已导入</span>' : '<button class="small" data-cat="' + i + '">导入</button>') + '</div></div></div>';
+      }).join('') || '（无）';
+      $('catList').dataset.items = JSON.stringify(list);
+    }).catch(function (e) { $('catList').textContent = e.message; });
+  }
+  function startImport(url, title, series) {
+    var fd = new FormData(); fd.append('url', url); fd.append('title', title); fd.append('series', series);
+    return api('POST', '/import-url', fd).then(function () { msg('importMsg', '已开始导入，可以离开此页，稍后回来查看进度。'); pollJobs(); })
+      .catch(function (e) { msg('importMsg', e.message, 'err'); });
+  }
+  $('catList').onclick = function (ev) {
+    var i = ev.target.dataset.cat; if (i == null) return;
+    var c = JSON.parse($('catList').dataset.items)[+i]; ev.target.disabled = true;
+    startImport(c.url, c.title, c.series);
+  };
+  $('btnImport').onclick = function () { startImport($('uUrl').value.trim(), $('uTitle').value, $('uSeries').value); };
+  var pollTimer = null;
+  function pollJobs() {
+    clearTimeout(pollTimer);
+    api('GET', '/import-jobs').then(function (jobs) {
+      $('jobList').innerHTML = jobs.map(function (j) {
+        return '<div class="msg ' + (j.state === 'error' ? 'err' : j.state === 'done' ? 'ok' : 'warn') + '">' + esc(j.title) + '：' + esc(j.message) + '</div>';
+      }).join('');
+      if (jobs.some(function (j) { return j.state === 'running'; })) pollTimer = setTimeout(pollJobs, 3000);
+      else { loadDocs(); refreshStats(); loadCatalog(); }
+    }).catch(function () {});
+  }
 
   // ---- entries
   var entries = [];

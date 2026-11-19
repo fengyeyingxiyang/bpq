@@ -69,6 +69,7 @@ class Settings:
         self.local_dir = _default_local_dir()  # writable: admin-entered knowledge
         self.admin_token = os.getenv("ADMIN_TOKEN", "").strip()  # empty = admin features disabled
         self.max_upload_mb = float(os.getenv("MAX_UPLOAD_MB", "60"))
+        self.max_import_mb = float(os.getenv("MAX_IMPORT_MB", "200"))  # official manuals are big
         self.provider = _provider()  # none | anthropic | openai | ollama
         self.model = os.getenv("LLM_MODEL", "")
         self.vision = _bool("LLM_VISION", True)
