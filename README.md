@@ -45,6 +45,25 @@ docker compose up -d
 - 想在服务器本机直接编译：在 `docker-compose.yml` 里把 `image:` 一行注释掉，启用 `build: .`。
 - 更新：`docker compose pull && docker compose up -d`。
 
+## 不用 Docker：直接运行的单文件版（Linux / Windows）
+
+每次推送到 `main`，Actions 会同时编译出两个包，在仓库的 **Actions → 最新一次运行 → Artifacts** 下载：
+
+- `fault-assistant-linux-x64`（`.tar.gz`，Debian 11 及以上、Ubuntu 20.04 及以上可用）
+- `fault-assistant-windows-x64`（`.zip`，含 `fault-assistant.exe`）
+
+想要永久下载链接，给仓库打一个版本标签即可，Actions 会自动创建 Release 并附上这两个包：
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+使用：解压 → 复制 `.env.example` 为 `.env` 并填好大模型配置 → Windows 双击 `fault-assistant.exe`，
+Linux 执行 `./fault-assistant` → 按窗口里显示的地址用手机访问。`data/` 文件夹可直接编辑，重启生效。
+Windows 首次运行请在防火墙提示里选“允许”，程序没有代码签名，可能出现“未知发布者”提示。
+
+目前只有 x86-64 版本；树莓派等 ARM 设备请用上面的 Docker 方式。
+
 ## 选择大模型（编辑 `.env`）
 
 | 方式 | 关键配置 |

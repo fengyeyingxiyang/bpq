@@ -2,6 +2,39 @@
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+FROZEN = bool(getattr(sys, "frozen", False))  # running as a PyInstaller binary
+# Folder holding the binary (user-editable data/.env live here); otherwise the cwd.
+APP_DIR = Path(sys.executable).resolve().parent if FROZEN else Path.cwd()
+# Folder with files bundled inside the binary.
+BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+
+
+def load_dotenv() -> None:
+    """Minimal .env loader for the standalone binary (Docker passes env vars itself)."""
+    for path in (APP_DIR / ".env", Path.cwd() / ".env"):
+        if not path.is_file():
+            continue
+        for raw in path.read_text(encoding="utf-8-sig").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
+            os.environ.setdefault(key.strip(), value)
+
+
+def _default_data_dir() -> str:
+    if os.getenv("DATA_DIR"):
+        return os.environ["DATA_DIR"]
+    if FROZEN:
+        external = APP_DIR / "data"
+        return str(external if external.is_dir() else BUNDLE_DIR / "data")
+    return "data"
 
 
 def _bool(name: str, default: bool) -> bool:
@@ -24,7 +57,9 @@ def _provider() -> str:
 
 class Settings:
     def __init__(self) -> None:
-        self.data_dir = os.getenv("DATA_DIR", "data")
+        if FROZEN:
+            load_dotenv()
+        self.data_dir = _default_data_dir()
         self.provider = _provider()  # none | anthropic | openai | ollama
         self.model = os.getenv("LLM_MODEL", "")
         self.vision = _bool("LLM_VISION", True)

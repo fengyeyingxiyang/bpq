@@ -21,6 +21,55 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: pytest -q
 
+  binary:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Debian 11 容器编译，glibc 较老，Debian 11/12、Ubuntu 20.04+ 等都能运行
+          - name: linux-x64
+            os: ubuntu-latest
+            container: python:3.12-bullseye
+          - name: windows-x64
+            os: windows-latest
+            container: ""
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        if: runner.os == 'Windows'
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pyinstaller
+      - run: pyinstaller --noconfirm fault-assistant.spec
+      - run: python packaging/make_release.py ${{ matrix.name }}
+      - name: Smoke test the packaged binary
+        run: python packaging/smoke_test.py dist/release/fault-assistant-${{ matrix.name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fault-assistant-${{ matrix.name }}
+          path: |
+            dist/release/*.zip
+            dist/release/*.tar.gz
+
+  release:
+    needs: binary
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+
   image:
     needs: test
     if: github.event_name != 'pull_request'

@@ -12,7 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import Settings
+from .config import BUNDLE_DIR, Settings
 from .kb import KnowledgeBase
 from .llm import LLM, LLMError, parse_json_object
 
@@ -241,5 +241,5 @@ async def diagnose(
     )
 
 
-_static = Path(__file__).parent / "static"
+_static = BUNDLE_DIR / "app" / "static"
 app.mount("/", StaticFiles(directory=_static, html=True), name="static")
