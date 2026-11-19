@@ -283,6 +283,15 @@
       });
       h += '</div>';
     }
+    if (d.expert && d.expert.length && d.mode !== 'kb') {
+      d.expert.forEach(function (f) {
+        h += '<details><summary>排查清单：' + esc(f.title) + '（通用经验）</summary><div class="entry"><div>' + esc(f.mechanism) + '</div><b>常见原因</b>';
+        f.causes.forEach(function (c, i) { h += '<div>' + (i + 1) + '. ' + esc(c.c) + '——' + esc(c.tell) + '</div>'; });
+        h += '<b>排查步骤</b>';
+        f.steps.forEach(function (t, i) { h += '<div>' + (i + 1) + '. ' + esc(t) + '</div>'; });
+        h += '<div class="tag">注意：' + esc(f.avoid.join('；')) + '</div><div class="tag">停手并联系厂家：' + esc(f.stop) + '</div></div></details>';
+      });
+    }
     if (d.entries && d.entries.length) {
       h += '<details><summary>手册原文条目（' + d.entries.length + '）</summary>';
       d.entries.forEach(function (e) {
@@ -296,7 +305,7 @@
       h += '</details>';
     }
     h += '</div>';
-    if ((d.entries && d.entries.length) || (d.notes && d.notes.length)) h += '<div class="safety">' + esc(d.safety) + '</div>';
+    if ((d.entries && d.entries.length) || (d.notes && d.notes.length) || (d.expert && d.expert.length)) h += '<div class="safety">' + esc(d.safety) + '</div>';
     show(h);
     $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

@@ -72,6 +72,9 @@ class Settings:
         self.provider = _provider()  # none | anthropic | openai | ollama
         self.model = os.getenv("LLM_MODEL", "")
         self.vision = _bool("LLM_VISION", True)
+        # small = short prompt + fixed answer format for weak local models; full = for strong models
+        prof = os.getenv("LLM_PROFILE", "auto").strip().lower()
+        self.small_model = (self.provider == "ollama") if prof in ("", "auto") else prof == "small"
         self.timeout = float(os.getenv("LLM_TIMEOUT", "120"))
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "1200"))
 
