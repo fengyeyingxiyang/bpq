@@ -1,0 +1,48 @@
+# series: ATV12
+# title: Schneider Altivar 12 (ATV12)
+# source: ATV12 User Manual BBV28581 rev.05, Diagnostics and troubleshooting, pp.109-114 (condensed)
+# aliases: ATV12, ALTIVAR 12
+# format: code|name|probable cause|remedy|reset  (reset: power / auto / rsf / hrfc / self)
+CrF1|Precharge|Charging relay control fault or damaged charging resistor|Power cycle; check connections and supply stability; contact Schneider Electric|power
+InF1|Unknown drive rating|Power card differs from the stored card (manual prints this code as InFI)|Contact Schneider Electric|power
+InF2|Unknown or incompatible power board|Power card incompatible with the control card|Contact Schneider Electric|power
+InF3|Internal serial link|Communication interruption between internal cards|Contact Schneider Electric|power
+InF4|Invalid industrialization zone|Inconsistent internal data|Contact Schneider Electric|power
+InF9|Current measurement circuit|Incorrect current measurement from the hardware|Contact Schneider Electric|power
+InFb|Internal thermal sensor|Sensor not operating correctly, or drive shorted/open|Contact Schneider Electric|power
+InFE|Internal CPU|Internal microprocessor fault|Power cycle; contact Schneider Electric if it persists|power
+OCF|Overcurrent|Motor control parameters wrong; inertia or load too high; mechanical lock|Check parameters, motor/drive/load sizing and the mechanism; add line chokes; reduce SFr; check grounding and motor insulation|power
+SCF1|Motor or ground short circuit|Short or ground fault at the output, commutation while running, leakage with parallel motors|Check drive-to-motor cables and insulation; fit motor chokes|power
+SCF3|Ground short circuit|Same group as SCF1|Same as SCF1|power
+SCF4|IGBT short circuit|Internal short detected at power-on|Contact Schneider Electric|power
+SOF|Overspeed|Instability, or overspeed from application inertia|Check the motor; adjust tFr (overspeed is 10 % above tFr); add a braking resistor; check sizing and speed loop gains. Can also be cleared remotely via rSF|power
+tnF|Auto-tuning|Motor not connected, phase loss, special motor, or motor turning during tuning|Check drive/motor compatibility; keep the motor connected and stationary; close any output contactor. Can also be cleared remotely via rSF|power
+LFF1|AI current lost|AI1 in current mode with CrL1 above 3 mA, or input current under 2 mA|Check the terminal connection|auto
+ObF|Overbraking|Braking too sudden or load too high|Increase deceleration time; add a braking resistor module if needed; check the line voltage|auto
+OHF|Drive overheat|Drive temperature too high|Check motor load, ventilation and ambient temperature; let the drive cool|auto
+OLC|Process overload|Process overload|Check the process and drive parameters|auto
+OLF|Motor overload|Excessive motor current|Check the motor thermal protection setting and the motor load|auto
+OPF1|1 output phase loss|Loss of one output phase|Check drive-to-motor connections; check the contactor if used|auto
+OPF2|3 output phase loss|Motor not connected, motor under 6 % of drive current, output contactor open, or current instability|Check connections; for test setups set OPL to nO|auto
+OSF|Main overvoltage|Line voltage too high or disturbed supply|Turn off, check the line voltage, then power on. If intermittent, set R1 to FLt and use upstream protection|auto
+PHF|Input phase loss|Supply or fuse fault, phase failure, 3-phase drive on a 1-phase line, unbalanced load|Check power connections and fuses; use a 3-phase supply; or set IPL to nO|auto
+SCF5|Load short circuit|Output short, or short detected during run/DC injection with IGBT test on|Check cables and motor insulation|auto
+SLF1|Modbus communication|Interruption on the Modbus network|Check bus connections and the ttO timeout; see the Modbus manual|auto
+SLF2|SoMove communication|Communication interruption with SoMove|Check the cable and timeout|auto
+SLF3|HMI communication|Interruption with the external display terminal|Check the terminal connection|auto
+SPIF|PI feedback fault|PID feedback below the lower limit|Check the feedback; check LPI and tPI|auto
+ULF|Process underload|Motor current below LUL for the ULt period|Check the process and drive parameters|auto
+tJF|IGBT overheat|IGBT temperature too high for the ambient and load|Check sizing; reduce SFr; wait for cooling|auto
+EPF1|External fault by logic input|External device triggered the fault|Check the external device, then reset|auto
+CFF|Incorrect configuration|HMI block from a drive of different rating; customer parameters inconsistent|Return to factory settings or restore a valid backup; contact Schneider Electric if it persists|self
+CFI|Invalid configuration|Loaded configuration inconsistent or upload incomplete|Check the previous configuration; load a compatible one|self
+CFI2|Download invalid configuration|Download with Loader or SoMove interrupted|Check the connection; restart the download or restore factory settings|self
+USF|Undervoltage|Line supply too low or transient dip|Check voltage and USb settings. Can also be cleared remotely via rSF|self
+InIt|Initializing (remote display terminal)|Microcontroller initializing; communication configuration search|Informational|
+COM.E|Communication error (remote display terminal)|50 ms timeout; shown after 220 retries|Check the terminal connection|
+A-17|Key alarm (remote display terminal)|Key held for over 10 s, membrane disconnected, or keypad woken while a key is pressed|Release the key; check the keypad|
+cLr|Confirm fault reset (remote display terminal)|Shown when STOP is pressed during a keypad fault|Confirm to reset|
+dEU.E|Drive mismatch (remote display terminal)|Drive and keypad brands/types do not match|Use a matching terminal|
+rOM.E|ROM abnormality (remote display terminal)|Keypad ROM checksum error|Replace the keypad|
+rAM.E|RAM abnormality (remote display terminal)|Keypad RAM error|Replace the keypad|
+CPU.E|Other defect (remote display terminal)|Other keypad fault|Replace the keypad|

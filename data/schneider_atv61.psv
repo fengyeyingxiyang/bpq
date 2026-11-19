@@ -1,0 +1,74 @@
+# series: ATV61
+# title: Schneider Altivar 61 (ATV61)
+# source: Altivar 61 Programming Manual, Maintenance - Fault table pp.242-248 (condensed). ATV71 uses a very similar fault set but is NOT covered by this file
+# aliases: ATV61, ALTIVAR 61
+# format: code|name|probable cause|remedy|reset  (reset: power / auto / rsf / hrfc / self)
+AI2F|AI2 input|Non-conforming signal on AI2|Check AI2 wiring and signal; adjust via LFL2 if needed|power
+bOF|DBR overload|Braking resistor overstressed|Check the resistor size; let it cool; check brP/brU|power
+bUF|DB unit short circuit|Output short on the braking unit, or unit not connected|Check the unit and resistor wiring; disable via bUb if no unit/resistor is fitted|power
+CrF1|Precharge|Load relay control fault or damaged charging resistor|Power cycle; check internal connections; inspect/repair|power
+CrF2|Thyr. soft charge|DC bus charging fault (thyristors)|Not captured in the extract; see manual p.243|power
+dCF|Differential current|Current imbalance between power blocks A and B (specific models only)|Check thyristors (TEST THYRISTORS), IGBTs (TRANSISTOR TEST) and the current transformer|power
+EEF1|Control EEPROM|Internal memory fault on the control card|Check EMC; power cycle, reset, factory settings; inspect/repair|power
+EEF2|Power EEPROM|Internal memory fault on the power card|Not separately listed in the extract; see manual p.243|power
+EnF|Encoder|Encoder feedback fault|Check PGI and EnS; check encoder wiring and power; reverse PHr or the encoder signals if needed|power
+FCF1|Out. contact. stuck|Output contactor closed when it should open|Check the contactor, wiring and feedback circuit|power
+Fd2|Damper open|Damper open when closing conditions are met|Check the damper, wiring, feedback and time delay|power
+HdF|IGBT desaturation|Short circuit or ground fault at the output|Check motor cables and insulation; run the 1.10 diagnostics|power
+ILF|Internal com. link|Communication fault between option card and drive|Check EMC and connections; maximum 2 option cards; replace the card; inspect/repair|power
+InF1|Rating error|Power card differs from the stored card|Check the power card reference|power
+InF2|Incompatible PB|Power card incompatible with the control card|Check the power card reference and compatibility|power
+InF3|Internal serial link|Communication fault between internal cards|Check internal connections; inspect/repair|power
+InF4|Internal MFG area|Internal data inconsistent|Recalibrate (Schneider Electric Product Support)|power
+InF6|Internal-option|Installed option not recognized|Check the option reference and compatibility|power
+InF7|Internal-hard init.|Drive initialization incomplete|Power off and reset|power
+InF8|Internal-ctrl supply|Incorrect control power supply|Check the control section supply|power
+InF9|Internal I measure|Incorrect current measurements|Replace current sensors or the power card; inspect/repair|power
+InFA|Internal-mains circuit|Input stage not operating correctly|Run the 1.10 diagnostics; inspect/repair|power
+InFb|Internal-th. sensor|Drive or braking unit temperature sensor faulty|Replace the sensor; inspect/repair; disable via bUb if no braking unit|power
+InFC|Internal-time meas.|Fault in electronic time measurement|Inspect/repair|power
+InFE|Internal-CPU|Internal microprocessor fault|Power off and reset; inspect/repair|power
+OCF|Overcurrent|Incorrect SEt-/drC- parameters; inertia or load too high; mechanical lock|Check parameters, motor/drive/load sizing and the mechanism|power
+PrF|Power removal|Fault in the Power Removal safety function|Inspect/repair|power
+SCF1|Motor short circuit|Output short/ground fault, or high leakage with parallel motors|Check cables and motor insulation; run diagnostics; lower switching frequency; add output chokes; check speed loop and brake settings; if nLd is used, switch to U/F|power
+SCF2|Impedant short circuit|Impedance short circuit|Not separately listed in the extract; see manual p.244|power
+SCF3|Ground short circuit|Ground short circuit|Not separately listed in the extract; see manual p.244|power
+SOF|Overspeed|Instability or driving load too high|Check the motor, gain and stability parameters; add a braking resistor; check sizing; check FqF- if used|power
+SPF|Speed fdback loss|Encoder feedback missing; no pulse input signal|Check the encoder and input wiring and the detector|power
+tnF|Auto-tuning|Special motor or unsuitable motor rating; motor not connected|Check motor/drive compatibility; keep the motor connected during tuning; close the output contactor if used|power
+APF|Application fault|Controller Inside card fault|See the card documentation|auto
+CnF|Com. network|Communication fault on the communication card|Check EMC, wiring and timeout; replace the option card; inspect/repair|auto
+COF|CAN com.|Interruption on the CANopen bus|Check the bus and timeout; see the CANopen manual|auto
+EPF1|External fault LI/Bit|External device fault|Check the device; reset|auto
+EPF2|External fault com.|Fault from the communication network|Check the cause; reset|auto
+FCF2|Out. contact. open|Output contactor open when it should close|Check the contactor, wiring and feedback|auto
+Fd1|Damper stuck|Damper closed when it should open|Check the damper, wiring, feedback and time delay|auto
+LCF|Input contactor|Drive not powered after the LCt timeout|Check the contactor, wiring, timeout and connections|auto
+LFF2/LFF3/LFF4|AI2/AI3/AI4 4-20 mA loss|Loss of the 4-20 mA reference|Check analog input connections; adjust LFLx if needed|auto
+nFF|No Flow Fault|Zero fluid|Check and rectify the cause; check the zero-fluid detection parameters|auto
+ObF|Overbraking|Braking too sudden or load too high|Increase deceleration time; add a braking resistor; consider brA|auto
+OHF|Drive overheat|Power board, braking unit, phase module or rectifier over-temperature|Check motor load, ventilation and ambient temperature; let it cool|auto
+OLC|Proc. overload|Process overload|Remove the cause; check the OLd- parameters|auto
+OLF|Motor overload|Excessive motor current|Check the motor thermal protection setting and load; let it cool|auto
+OPF1|1 motor phase loss|Loss of one output phase|Check drive-to-motor connections|auto
+OPF2|3 motor phase loss|Motor missing or too small; output contactor open; current instability|Check connections; if a contactor is used set OPL to OAC; for tests without a motor set OPL to nO; check UFr, UnS, nCr; run tUn|auto
+OSF|Mains overvoltage|Line voltage too high or disturbed|Check the line voltage|auto
+OtF1/OtF2|PTC1/PTC2 overheat|PTC probe over-temperature|Check motor load, size and ventilation; let it cool; check the probes|auto
+OtFL|LI6 PTC overheat|PTC over-temperature on LI6|As OtF1/OtF2|auto
+PtF1/PtF2|PTC1/PTC2 probe|Probe open or short-circuited|Check the probes and wiring|auto
+PtFL|LI6 PTC probe|LI6 probe open or short-circuited|Check the probe and wiring|auto
+SCF4|IGBT short circuit|Power component fault|Run the 1.10 test; inspect/repair|auto
+SCF5|Motor short circuit|Short circuit at the output|Check cables and insulation; run tests; inspect/repair|auto
+SLF1|Modbus com.|Interruption on Modbus|Check the bus and timeout; see the Modbus manual|auto
+SLF2|PC com.|Fault with the PC software|Check the cable and timeout|auto
+SLF3|HMI com.|Fault with the graphic terminal|Check the connection and timeout|auto
+SPIF|PI feedback|PID feedback below the lower limit|Check the PID feedback, threshold and delay|auto
+SSF|Torque/current limit|Switched to torque limitation|Check the mechanics; check tLA- and tId- parameters|auto
+tJF|IGBT overheat|Drive overheated|Check sizing; lower switching frequency; let the motor cool|auto
+ULF|Proc. underload|Process underload|Remove the cause; check the ULd- parameters|auto
+USF|Undervoltage|Line too low; voltage dip; damaged precharge resistor (motor mode only)|Check voltage and USb- settings; replace the precharge resistor; inspect/repair|self
+CFF|Incorrect config.|Option card changed or removed; inconsistent configuration|Check for card errors; see card-change notes; restore factory settings or a valid backup|self
+CFI|Invalid config.|Bus-loaded configuration inconsistent; tFr above 599 Hz|Load a compatible configuration; set tFr to 599 Hz or less|self
+HCF|Cards pairing|CARDS PAIRING active and a card was changed|Reinsert the original card; if changed deliberately, confirm with the PPI password|self
+PHF|Input phase loss|Missing phase, blown fuse, single-phase supply on a 3-phase drive, unbalanced load|Check supply and fuses; use a 3-phase line; or set IPL to nO|self
+PrtF|Power Ident|Prt parameter incorrect; control card swapped for a different rating|Enter the correct value (reserved for product support); check for card errors|self

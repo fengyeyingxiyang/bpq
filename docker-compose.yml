@@ -1,0 +1,17 @@
+services:
+  fault-assistant:
+    image: ghcr.io/fengyeyingxiyang/ai:latest
+    # 想在本机直接编译而不是拉取镜像，把上一行注释掉，再取消下一行注释：
+    # build: .
+    container_name: fault-assistant
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      # 故障码库放在宿主机 ./data，新增手册只需加文件并重启容器，无需重新编译
+      - ./data:/app/data:ro
+    extra_hosts:
+      # Linux 下让容器能访问宿主机上的 Ollama
+      - "host.docker.internal:host-gateway"
