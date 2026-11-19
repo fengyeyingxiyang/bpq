@@ -4,6 +4,13 @@ import socket
 import sys
 
 
+def _safe_streams() -> None:
+    """Never crash on console encodings that cannot show Chinese (e.g. cp1252 when piped)."""
+    for stream in (sys.stdout, sys.stderr):
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
+
+
 def _lan_ip() -> str:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -28,6 +35,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    _safe_streams()
     try:
         main()
     except Exception as exc:  # keep the console open on Windows so the error is readable
