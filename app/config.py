@@ -37,6 +37,12 @@ def _default_data_dir() -> str:
     return "data"
 
 
+def _default_local_dir() -> str:
+    if os.getenv("LOCAL_DIR"):
+        return os.environ["LOCAL_DIR"]
+    return str(APP_DIR / "local") if FROZEN else "local"
+
+
 def _bool(name: str, default: bool) -> bool:
     v = os.getenv(name)
     if v is None or v == "":
@@ -60,6 +66,9 @@ class Settings:
         if FROZEN:
             load_dotenv()
         self.data_dir = _default_data_dir()
+        self.local_dir = _default_local_dir()  # writable: admin-entered knowledge
+        self.admin_token = os.getenv("ADMIN_TOKEN", "").strip()  # empty = admin features disabled
+        self.max_upload_mb = float(os.getenv("MAX_UPLOAD_MB", "60"))
         self.provider = _provider()  # none | anthropic | openai | ollama
         self.model = os.getenv("LLM_MODEL", "")
         self.vision = _bool("LLM_VISION", True)

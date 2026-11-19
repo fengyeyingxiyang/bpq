@@ -36,6 +36,8 @@ class Entry:
     remedy: str
     reset: str
     source: str
+    id: str = ""
+    origin: str = "manual"  # manual = from the manuals in data/, local = entered by the admin
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -46,6 +48,10 @@ class Entry:
 class KnowledgeBase:
     def __init__(self, data_dir: str | Path):
         self.data_dir = Path(data_dir)
+        self._base_series: dict[str, dict] = {}
+        self._base_entries: list[Entry] = []
+        self._base_alias: dict[str, str] = {}
+        self._local: list[Entry] = []
         self.series: dict[str, dict] = {}
         self.entries: list[Entry] = []
         self._index: dict[str, list[Entry]] = {}
@@ -54,10 +60,34 @@ class KnowledgeBase:
 
     # ------------------------------------------------------------------ load
     def load(self) -> None:
-        self.series, self.entries, self._index, self._alias = {}, [], {}, {}
+        """(Re)read the manual files in data_dir; entries added by the admin are kept."""
+        self._base_series, self._base_entries, self._base_alias = {}, [], {}
         for path in sorted(self.data_dir.glob("*.psv")):
             self._load_file(path)
+        self._rebuild()
         log.info("knowledge base: %d series, %d entries", len(self.series), len(self.entries))
+
+    def set_local(self, entries: list[Entry]) -> None:
+        """Replace the entries the admin entered on site (they are listed before the manual ones)."""
+        self._local = list(entries)
+        self._rebuild()
+
+    def canonical_series(self, text: str) -> str:
+        """Existing series id for the text, or the text itself (upper-case) for a new series."""
+        return self.resolve_series(text) or (text or "").strip().upper()[:40]
+
+    def _rebuild(self) -> None:
+        self.series = {k: dict(v) for k, v in self._base_series.items()}
+        self._alias = dict(self._base_alias)
+        self.entries, self._index = [], {}
+        for e in self._local:
+            if e.series not in self.series:
+                self.series[e.series] = {"id": e.series, "title": e.series, "source": "现场录入", "count": 0}
+                self._alias[norm(e.series)] = e.series
+        for e in self._local + self._base_entries:
+            self.entries.append(e)
+            self._index.setdefault(norm(e.code), []).append(e)
+            self.series[e.series]["count"] += 1
 
     def _load_file(self, path: Path) -> None:
         meta: dict[str, str] = {}
@@ -83,21 +113,17 @@ class KnowledgeBase:
             "source": meta.get("source", ""),
             "count": 0,
         }
-        self.series[series_id] = info
-        self._alias[norm(series_id)] = series_id
+        self._base_series[series_id] = info
+        self._base_alias[norm(series_id)] = series_id
         for alias in meta.get("aliases", "").split(","):
             if alias.strip():
-                self._alias[norm(alias)] = series_id
+                self._base_alias[norm(alias)] = series_id
 
         for code_field, name, cause, remedy, reset in rows:
             for code in code_field.split("/"):
                 code = code.strip()
-                if not code:
-                    continue
-                entry = Entry(series_id, code, name, cause, remedy, reset, info["source"])
-                self.entries.append(entry)
-                self._index.setdefault(norm(code), []).append(entry)
-                info["count"] += 1
+                if code:
+                    self._base_entries.append(Entry(series_id, code, name, cause, remedy, reset, info["source"]))
 
     # ---------------------------------------------------------------- series
     def resolve_series(self, text: str) -> str | None:
@@ -107,10 +133,9 @@ class KnowledgeBase:
             return None
         if n in self._alias:
             return self._alias[n]
-        for alias, sid in self._alias.items():
-            if alias in n:
-                return sid
-        return None
+        # e.g. "atv610hd15n4" contains both "atv61" and "atv610": the longest alias wins
+        hits = [(len(alias), sid) for alias, sid in self._alias.items() if alias in n]
+        return max(hits)[1] if hits else None
 
     def series_list(self) -> list[dict]:
         return [dict(s) for s in self.series.values()]

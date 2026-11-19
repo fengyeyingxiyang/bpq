@@ -72,6 +72,13 @@
   @keyframes s { to { transform: rotate(360deg); } }
   footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 18px; }
   [hidden] { display: none !important; }
+  .site { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .site h3 { font-size: 15px; margin: 4px 0 6px; }
+  .note { font-size: 14px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .note .snip { white-space: pre-wrap; color: var(--text); margin-top: 4px; max-height: 9em; overflow: auto; }
+  .note img { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); margin-top: 6px; display: block; }
+  .note a { color: var(--brand); }
+  .local { background: var(--warn-bg); color: var(--warn-text); border-radius: 6px; padding: 0 6px; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -262,10 +269,24 @@
       h += '<p class="tag">照片识别：' + esc(d.image_reading.description) + '</p>';
     }
     h += '<div class="answer">' + md(d.answer) + '</div>';
+    if (d.notes && d.notes.length) {
+      h += '<div class="site"><h3>本厂资料（管理员录入）</h3>';
+      d.notes.forEach(function (n) {
+        h += '<div class="note"><b>' + esc(n.title) + '</b> <span class="tag">' + esc(n.kind_label) +
+          (n.series ? ' · ' + esc(n.series) : '') + (n.page ? ' · 第' + esc(n.page) + '页' : '') + '</span>' +
+          '<div class="snip">' + esc(n.snippet) + '</div>';
+        (n.files || []).forEach(function (f) {
+          if (f.type === 'image') h += '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" src="' + esc(f.url) + '" alt="' + esc(f.orig) + '"></a>';
+          else h += '<div><a href="' + esc(f.url) + '" target="_blank" rel="noopener">打开 ' + esc(f.orig) + '</a></div>';
+        });
+        h += '</div>';
+      });
+      h += '</div>';
+    }
     if (d.entries && d.entries.length) {
       h += '<details><summary>手册原文条目（' + d.entries.length + '）</summary>';
       d.entries.forEach(function (e) {
-        h += '<div class="entry"><b>' + esc(e.code) + '</b> · ' + esc(e.series) + ' · ' + esc(e.name) +
+        h += '<div class="entry"><b>' + esc(e.code) + '</b> · ' + esc(e.series) + ' · ' + esc(e.name) + (e.origin === 'local' ? ' <span class="local">现场录入</span>' : '') +
           '<div>原因：' + esc(e.cause) + '</div><div>处理：' + esc(e.remedy) + '</div>' +
           (e.reset_label ? '<div class="tag">' + esc(e.reset_label) + '</div>' : '') + '</div>';
       });
@@ -275,7 +296,7 @@
       h += '</details>';
     }
     h += '</div>';
-    if (d.entries && d.entries.length) h += '<div class="safety">' + esc(d.safety) + '</div>';
+    if ((d.entries && d.entries.length) || (d.notes && d.notes.length)) h += '<div class="safety">' + esc(d.safety) + '</div>';
     show(h);
     $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

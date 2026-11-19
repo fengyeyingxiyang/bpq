@@ -2,7 +2,8 @@ FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    DATA_DIR=/app/data
+    DATA_DIR=/app/data \
+    LOCAL_DIR=/app/local
 
 WORKDIR /app
 
@@ -12,7 +13,7 @@ RUN pip install -r requirements.txt
 COPY app ./app
 COPY data ./data
 
-RUN useradd --system --no-create-home appuser
+RUN useradd --system --no-create-home appuser && mkdir -p /app/local && chown appuser /app/local
 USER appuser
 
 EXPOSE 8080

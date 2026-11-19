@@ -12,6 +12,11 @@ services:
     volumes:
       # 故障码库放在宿主机 ./data，新增手册只需加文件并重启容器，无需重新编译
       - ./data:/app/data:ro
+      # 管理员录入的接线/图纸/案例/PDF 存在这个卷里；在管理页“备份/工具”里可下载备份
+      - local-data:/app/local
     extra_hosts:
       # Linux 下让容器能访问宿主机上的 Ollama
       - "host.docker.internal:host-gateway"
+
+volumes:
+  local-data:

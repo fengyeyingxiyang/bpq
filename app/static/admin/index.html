@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>知识库管理</title>
+<style>
+  :root {
+    --bg: #f3f5f8; --card: #ffffff; --text: #1b2430; --muted: #627086;
+    --line: #dde3ec; --brand: #0b5cab; --brand-ink: #ffffff;
+    --warn-bg: #fff4e0; --warn-text: #8a5300; --danger-bg: #fdeaea; --danger-text: #a12626;
+    --ok-bg: #e6f6ec; --ok-text: #1d6b3a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f141b; --card: #182029; --text: #e6ebf2; --muted: #93a0b3;
+      --line: #28323f; --brand: #4a9bea; --brand-ink: #07121f;
+      --warn-bg: #3a2c12; --warn-text: #f0c36b; --danger-bg: #3b1c1c; --danger-text: #f19a9a;
+      --ok-bg: #12301f; --ok-text: #8fdca8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 14px 14px 60px; }
+  h1 { font-size: 20px; margin: 6px 0 2px; }
+  h2 { font-size: 16px; margin: 0 0 8px; }
+  .sub, .tag { color: var(--muted); font-size: 13px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input, select, textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  textarea { min-height: 110px; resize: vertical; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+  button.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); font-weight: 600; }
+  button.danger { color: var(--danger-text); }
+  button.small { padding: 5px 10px; font-size: 14px; }
+  .tabs { display: flex; gap: 6px; margin-top: 12px; }
+  .tabs button { flex: 1; }
+  .tabs button.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .item { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .item:last-child { border-bottom: 0; }
+  .item .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .item .btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .msg { border-radius: 10px; padding: 9px 12px; margin-top: 10px; font-size: 14px; white-space: pre-wrap; }
+  .msg.err { background: var(--danger-bg); color: var(--danger-text); }
+  .msg.ok { background: var(--ok-bg); color: var(--ok-text); }
+  .msg.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .files .f { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; padding: 4px 0; }
+  .files img { height: 44px; border-radius: 6px; border: 1px solid var(--line); vertical-align: middle; margin-right: 8px; }
+  a { color: var(--brand); }
+  .hide { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>知识库管理</h1>
+  <div class="sub">录入本厂变频器的接线、图纸、现场故障案例；查询页会自动引用。<a href="/">返回查询页</a></div>
+
+  <div class="card" id="login">
+    <label for="token">管理令牌（服务器 .env 里的 ADMIN_TOKEN）</label>
+    <input id="token" type="password" autocomplete="current-password">
+    <div class="actions"><button class="primary" id="btnLogin">登录</button></div>
+    <div id="loginMsg"></div>
+  </div>
+
+  <div id="app" class="hide">
+    <div class="tabs">
+      <button data-tab="docs" class="on">资料</button>
+      <button data-tab="entries">故障条目</button>
+      <button data-tab="tools">备份/工具</button>
+    </div>
+    <div id="stats" class="sub" style="margin-top:8px"></div>
+
+    <!-- docs -->
+    <section id="tab-docs">
+      <div class="card">
+        <h2 id="docFormTitle">新增资料</h2>
+        <form id="docForm" autocomplete="off">
+          <label for="dTitle">标题（必填）</label>
+          <input id="dTitle" placeholder="如：1号皮带机 ATV320 控制接线">
+          <div class="row2">
+            <div><label for="dKind">类型</label><select id="dKind"></select></div>
+            <div><label for="dSeries">变频器系列（可空）</label>
+              <input id="dSeries" list="seriesList" placeholder="如 ATV320"><datalist id="seriesList"></datalist></div>
+          </div>
+          <label for="dCodes">关联故障代码（可空，逗号分隔）</label>
+          <input id="dCodes" placeholder="如 OCF, SCF1, InF9">
+          <label for="dText">文字说明（接线表、端子号、现场经验都可以直接打字）</label>
+          <textarea id="dText" placeholder="如：&#10;X1:3 → 变频器 DI1（启动）&#10;X1:4 → 变频器 DI2（停止）&#10;编码器线接 VW3A3411 卡 …"></textarea>
+          <label for="dFiles">上传图纸照片 / PDF 手册 / 文本（可多选，单个不超过 <span id="maxMb">60</span> MB）</label>
+          <input id="dFiles" type="file" multiple accept="image/*,.pdf,.txt,.md,.csv">
+          <div class="files" id="docFiles"></div>
+          <label style="display:flex;gap:8px;align-items:center;color:var(--text)">
+            <input type="checkbox" id="dAi" checked style="width:auto"> 图片用大模型识别图中文字（需要配置能看图的大模型）</label>
+          <div class="actions">
+            <button type="submit" class="primary" id="docSave">保存</button>
+            <button type="button" id="docCancel" class="hide">取消编辑</button>
+          </div>
+          <div id="docMsg"></div>
+        </form>
+      </div>
+      <div class="card"><h2>已有资料</h2><div id="docList" class="sub">加载中…</div></div>
+    </section>
+
+    <!-- entries -->
+    <section id="tab-entries" class="hide">
+      <div class="card">
+        <h2 id="enFormTitle">新增故障条目</h2>
+        <div class="sub">用于手册里没有的代码，或本厂实际遇到的故障。与手册同代码时，查询结果里本厂条目排在前面。</div>
+        <form id="enForm" autocomplete="off">
+          <div class="row2">
+            <div><label for="eSeries">系列（必填）</label><input id="eSeries" list="seriesList" placeholder="如 ATV320"></div>
+            <div><label for="eCode">故障代码（必填）</label><input id="eCode" placeholder="如 OCF"></div>
+          </div>
+          <label for="eName">故障名称</label><input id="eName">
+          <label for="eCause">可能原因</label><textarea id="eCause"></textarea>
+          <label for="eRemedy">处理办法</label><textarea id="eRemedy"></textarea>
+          <label for="eReset">复位方式</label><select id="eReset"></select>
+          <div class="actions">
+            <button type="submit" class="primary">保存</button>
+            <button type="button" id="enCancel" class="hide">取消编辑</button>
+          </div>
+          <div id="enMsg"></div>
+        </form>
+      </div>
+      <div class="card"><h2>本厂条目</h2><div id="enList" class="sub">加载中…</div></div>
+    </section>
+
+    <!-- tools -->
+    <section id="tab-tools" class="hide">
+      <div class="card">
+        <h2>备份</h2>
+        <div class="sub">下载本厂录入的全部内容（条目、资料、图纸、PDF）。服务器重装前务必备份，也可以直接复制服务器上的 local 文件夹。</div>
+        <div class="actions"><button class="primary" id="btnExport">下载备份 zip</button></div>
+      </div>
+      <div class="card">
+        <h2>重新读取手册库</h2>
+        <div class="sub">手工修改了 data 文件夹里的 .psv 手册文件后点这里，不用重启。</div>
+        <div class="actions"><button id="btnReload">重新读取</button></div>
+        <div id="toolMsg"></div>
+      </div>
+      <div class="card"><button id="btnLogout">退出登录</button></div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var token = '';
+  try { token = sessionStorage.getItem('adm') || ''; } catch (e) {}
+  var meta = null, editDoc = null, editEntry = null;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function msg(id, text, cls) { $(id).innerHTML = text ? '<div class="msg ' + (cls || 'ok') + '">' + esc(text) + '</div>' : ''; }
+
+  function api(method, path, body) {
+    var opt = { method: method, headers: { 'Authorization': 'Bearer ' + token } };
+    if (body) opt.body = body;
+    return fetch('/api/admin' + path, opt).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) { var e = new Error(j.detail || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+        return j;
+      });
+    });
+  }
+  function jsonBody(o) { return new Blob([JSON.stringify(o)], { type: 'application/json' }); }
+  function apiJson(method, path, o) {
+    return fetch('/api/admin' + path, { method: method, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(o) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error(typeof j.detail === 'string' ? j.detail : '提交内容有误'); return j; }); });
+  }
+
+  // ---- login
+  function enter() {
+    api('GET', '/ping').then(function (j) {
+      meta = j;
+      try { sessionStorage.setItem('adm', token); } catch (e) {}
+      $('login').classList.add('hide'); $('app').classList.remove('hide');
+      $('maxMb').textContent = j.max_upload_mb;
+      fill($('dKind'), Object.keys(j.kinds).map(function (k) { return [k, j.kinds[k]]; }));
+      fill($('eReset'), [['', '（不填）']].concat(Object.keys(j.reset_labels).map(function (k) { return [k, j.reset_labels[k]]; })));
+      $('seriesList').innerHTML = j.series.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('');
+      showStats(j.stats);
+      loadDocs(); loadEntries();
+    }).catch(function (e) {
+      token = ''; try { sessionStorage.removeItem('adm'); } catch (x) {}
+      $('login').classList.remove('hide'); $('app').classList.add('hide');
+      msg('loginMsg', e.message, 'err');
+    });
+  }
+  function fill(sel, pairs) { sel.innerHTML = pairs.map(function (p) { return '<option value="' + esc(p[0]) + '">' + esc(p[1]) + '</option>'; }).join(''); }
+  function showStats(s) {
+    $('stats').textContent = '资料 ' + s.docs + ' 份 · 文件 ' + s.files + ' 个 · 本厂条目 ' + s.entries + ' 条' +
+      (meta && meta.llm_vision ? '' : ' · 未配置看图大模型（图片只作附件）');
+  }
+  function refreshStats() { api('GET', '/ping').then(function (j) { meta = j; showStats(j.stats); }).catch(function () {}); }
+  $('btnLogin').onclick = function () { token = $('token').value.trim(); if (token) enter(); };
+  $('token').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btnLogin').click(); });
+  $('btnLogout').onclick = function () { token = ''; try { sessionStorage.removeItem('adm'); } catch (e) {} location.reload(); };
+
+  // ---- tabs
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      ['docs', 'entries', 'tools'].forEach(function (t) { $('tab-' + t).classList.toggle('hide', t !== b.dataset.tab); });
+    };
+  });
+
+  // ---- docs
+  var docs = [];
+  function loadDocs() {
+    api('GET', '/docs').then(function (list) {
+      docs = list;
+      $('docList').innerHTML = list.length ? list.map(function (d) {
+        return '<div class="item"><div class="top"><div><b>' + esc(d.title) + '</b><div class="tag">' + esc(d.kind_label) +
+          (d.series ? ' · ' + esc(d.series) : '') + (d.codes.length ? ' · 代码 ' + esc(d.codes.join(',')) : '') +
+          ' · ' + d.files.length + ' 个文件</div><div class="tag">' + esc(d.text) + '</div></div>' +
+          '<div class="btns"><button class="small" data-edit="' + esc(d.id) + '">编辑</button>' +
+          '<button class="small danger" data-del="' + esc(d.id) + '">删除</button></div></div></div>';
+      }).join('') : '还没有资料。';
+    }).catch(function (e) { $('docList').textContent = e.message; });
+  }
+  $('docList').onclick = function (ev) {
+    var id = ev.target.dataset.edit, del = ev.target.dataset.del;
+    if (del) {
+      if (!confirm('确定删除这份资料及其全部文件？')) return;
+      api('DELETE', '/docs/' + del).then(function () { loadDocs(); refreshStats(); }).catch(function (e) { msg('docMsg', e.message, 'err'); });
+    } else if (id) {
+      api('GET', '/docs/' + id).then(startEditDoc).catch(function (e) { msg('docMsg', e.message, 'err'); });
+    }
+  };
+  var removed = [];
+  function renderDocFiles() {
+    if (!editDoc) { $('docFiles').innerHTML = ''; return; }
+    $('docFiles').innerHTML = editDoc.files.filter(function (f) { return removed.indexOf(f.name) < 0; }).map(function (f) {
+      var thumb = f.type === 'image' ? '<img src="' + esc(f.url) + '" alt="">' : '';
+      var note = f.type === 'pdf' ? (f.scanned ? '（扫描件，无文字）' : '（' + f.pages + ' 页）') : (f.type === 'image' && f.has_summary ? '（已识别文字）' : '');
+      return '<div class="f"><span>' + thumb + '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.orig) + '</a> ' + esc(note) +
+        '</span><button type="button" class="small danger" data-rm="' + esc(f.name) + '">移除</button></div>';
+    }).join('');
+  }
+  $('docFiles').onclick = function (ev) { var n = ev.target.dataset.rm; if (n) { removed.push(n); renderDocFiles(); } };
+  function startEditDoc(d) {
+    editDoc = d; removed = [];
+    $('docFormTitle').textContent = '编辑资料';
+    $('dTitle').value = d.title; $('dKind').value = d.kind; $('dSeries').value = d.series;
+    $('dCodes').value = d.codes.join(', '); $('dText').value = d.text; $('dFiles').value = '';
+    $('docCancel').classList.remove('hide'); renderDocFiles(); window.scrollTo(0, 0);
+  }
+  function resetDocForm() {
+    editDoc = null; removed = []; $('docForm').reset(); $('docFormTitle').textContent = '新增资料';
+    $('docCancel').classList.add('hide'); renderDocFiles();
+  }
+  $('docCancel').onclick = function () { resetDocForm(); msg('docMsg', ''); };
+  $('docForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var fd = new FormData();
+    fd.append('title', $('dTitle').value); fd.append('kind', $('dKind').value);
+    fd.append('series', $('dSeries').value); fd.append('codes', $('dCodes').value);
+    fd.append('text', $('dText').value); fd.append('ai_read', $('dAi').checked ? 'true' : 'false');
+    if (editDoc) fd.append('remove_files', removed.join(','));
+    var files = $('dFiles').files;
+    for (var i = 0; i < files.length; i++) fd.append('files', files[i], files[i].name);
+    var btn = $('docSave'); btn.disabled = true; btn.textContent = files.length ? '上传中…' : '保存中…';
+    msg('docMsg', '');
+    api(editDoc ? 'PUT' : 'POST', '/docs' + (editDoc ? '/' + editDoc.id : ''), fd).then(function (j) {
+      resetDocForm();
+      msg('docMsg', '已保存。' + ((j.warnings || []).length ? '\n' + j.warnings.join('\n') : ''), (j.warnings || []).length ? 'warn' : 'ok');
+      loadDocs(); refreshStats();
+    }).catch(function (e) { msg('docMsg', e.message, 'err'); })
+      .then(function () { btn.disabled = false; btn.textContent = '保存'; });
+  });
+
+  // ---- entries
+  var entries = [];
+  function loadEntries() {
+    api('GET', '/entries').then(function (list) {
+      entries = list;
+      $('enList').innerHTML = list.length ? list.map(function (e) {
+        return '<div class="item"><div class="top"><div><b>' + esc(e.code) + '</b> · ' + esc(e.series) + ' · ' + esc(e.name) +
+          '<div class="tag">原因：' + esc(e.cause) + '</div><div class="tag">处理：' + esc(e.remedy) + '</div></div>' +
+          '<div class="btns"><button class="small" data-edit="' + esc(e.id) + '">编辑</button>' +
+          '<button class="small danger" data-del="' + esc(e.id) + '">删除</button></div></div></div>';
+      }).join('') : '还没有本厂条目。';
+    }).catch(function (e) { $('enList').textContent = e.message; });
+  }
+  $('enList').onclick = function (ev) {
+    var id = ev.target.dataset.edit, del = ev.target.dataset.del;
+    if (del) {
+      if (!confirm('确定删除这条故障条目？')) return;
+      api('DELETE', '/entries/' + del).then(function () { loadEntries(); refreshStats(); }).catch(function (e) { msg('enMsg', e.message, 'err'); });
+    } else if (id) {
+      var e = entries.filter(function (x) { return x.id === id; })[0]; if (!e) return;
+      editEntry = e; $('enFormTitle').textContent = '编辑故障条目';
+      $('eSeries').value = e.series; $('eCode').value = e.code; $('eName').value = e.name;
+      $('eCause').value = e.cause; $('eRemedy').value = e.remedy; $('eReset').value = e.reset || '';
+      $('enCancel').classList.remove('hide'); window.scrollTo(0, 0);
+    }
+  };
+  function resetEnForm() { editEntry = null; $('enForm').reset(); $('enFormTitle').textContent = '新增故障条目'; $('enCancel').classList.add('hide'); }
+  $('enCancel').onclick = function () { resetEnForm(); msg('enMsg', ''); };
+  $('enForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var o = { series: $('eSeries').value, code: $('eCode').value, name: $('eName').value, cause: $('eCause').value, remedy: $('eRemedy').value, reset: $('eReset').value };
+    apiJson(editEntry ? 'PUT' : 'POST', '/entries' + (editEntry ? '/' + editEntry.id : ''), o).then(function () {
+      resetEnForm(); msg('enMsg', '已保存，查询页立即生效。'); loadEntries(); refreshStats();
+      api('GET', '/ping').then(function (j) { $('seriesList').innerHTML = j.series.map(function (s) { return '<option value="' + esc(s) + '">'; }).join(''); });
+    }).catch(function (e) { msg('enMsg', e.message, 'err'); });
+  });
+
+  // ---- tools
+  $('btnExport').onclick = function () {
+    fetch('/api/admin/export', { headers: { 'Authorization': 'Bearer ' + token } }).then(function (r) {
+      if (!r.ok) throw new Error('导出失败 HTTP ' + r.status);
+      var cd = r.headers.get('content-disposition') || '', m = /filename="?([^";]+)/.exec(cd);
+      return r.blob().then(function (b) {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = m ? m[1] : 'backup.zip';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+      });
+    }).catch(function (e) { msg('toolMsg', e.message, 'err'); });
+  };
+  $('btnReload').onclick = function () {
+    api('POST', '/reload').then(function (j) { msg('toolMsg', '已读取：' + j.series + ' 个系列，' + j.entries + ' 条。'); }).catch(function (e) { msg('toolMsg', e.message, 'err'); });
+  };
+
+  if (token) enter();
+})();
+</script>
+</body>
+</html>
