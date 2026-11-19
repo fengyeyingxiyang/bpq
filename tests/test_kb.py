@@ -62,3 +62,13 @@ def test_resolve_series(kb):
 
 def test_norm():
     assert norm("COM.E") == "come"
+
+
+def test_atv900_series_and_codes():
+    from app.kb import KnowledgeBase
+    kb = KnowledgeBase("data")
+    assert kb.resolve_series("ATV930C13N4C") == "ATV900"
+    assert kb.resolve_series("ATV630HD15N4") == "ATV600"
+    assert kb.lookup("BUF", "ATV900")[0].series == "ATV900"
+    assert kb.lookup("INFD", "ATV900")[0].cause
+    assert all(e.series != "ATV600" for e in kb.lookup("BUF", "ATV600"))  # falls back to other series

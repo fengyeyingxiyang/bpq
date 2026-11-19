@@ -1,9 +1,47 @@
 [
- {"series":"ATV320","title":"ATV320 编程手册（中文）NVE41300","url":"https://download.se.com/doc/NVE41300/ATV320_Programming_manual_CN_NVE41300_05.pdf"},
- {"series":"ATV312","title":"ATV312 编程手册（中文）BBV46388","url":"https://download.se.com/doc/BBV46388/ATV312_programming_manual_CN_BBV46388_04.pdf"},
- {"series":"ATV340","title":"ATV340 编程手册（中文）NVE61649","url":"https://download.se.com/doc/NVE61649/ATV340-Programming-Manual-CN-NVE61649-11.pdf"},
- {"series":"ATV610","title":"ATV610 编程手册（中文）EAV64393","url":"https://download.se.com/doc/EAV64393/ATV610-Programming-Manual-CN-EAV64393-09.pdf"},
- {"series":"ATV600","title":"ATV600 编程手册（中文）EAV64324","url":"https://download.se.com/doc/EAV64324/ATV600-Programming-Manual-CN-EAV64324-14.pdf"},
- {"series":"ATV71","title":"ATV71 编程手册（中文）1755859","url":"https://download.se.com/doc/1755859/1755859.pdf"},
- {"series":"ATV12","title":"ATV12 用户手册（英文）BBV28581","url":"https://download.schneider-electric.com/doc/BBV28581/ATV12_user_manual_EN_BBV28581_05.pdf"}
+ {
+  "series": "ATV320",
+  "title": "ATV320 编程手册（中文）NVE41300",
+  "url": "https://download.se.com/doc/NVE41300/ATV320_Programming_manual_CN_NVE41300_05.pdf"
+ },
+ {
+  "series": "ATV312",
+  "title": "ATV312 编程手册（中文）",
+  "url": "https://download.se.com/doc/BBV46388/ATV312_programming_manual_CN_BBV46388_04.pdf"
+ },
+ {
+  "series": "ATV340",
+  "title": "ATV340 编程手册（中文）NVE61649",
+  "url": "https://download.se.com/doc/NVE61649/ATV340-Programming-Manual-CN-NVE61649-11.pdf"
+ },
+ {
+  "series": "ATV610",
+  "title": "ATV610 编程手册（中文）EAV64393",
+  "url": "https://download.se.com/doc/EAV64393/ATV610-Programming-Manual-CN-EAV64393-09.pdf"
+ },
+ {
+  "series": "ATV900",
+  "title": "ATV900 编程手册（中文）NHA80762",
+  "url": "https://download.se.com/doc/NHA80762/ATV900-Programming-Manual-CN-NHA80762-14.pdf"
+ },
+ {
+  "series": "ATV900",
+  "title": "ATV900 Programming Manual（英文）NHA80757",
+  "url": "https://download.se.com/doc/NHA80757/ATV900-Programming-Manual-EN-NHA80757-14.pdf"
+ },
+ {
+  "series": "ATV600",
+  "title": "ATV600 编程手册（中文）EAV64324",
+  "url": "https://download.se.com/doc/EAV64324/ATV600-Programming-Manual-CN-EAV64324-14.pdf"
+ },
+ {
+  "series": "ATV71",
+  "title": "ATV71 编程手册（中文）1755859",
+  "url": "https://download.se.com/doc/1755859/1755859.pdf"
+ },
+ {
+  "series": "ATV12",
+  "title": "ATV12 用户手册（英文）BBV28581",
+  "url": "https://download.schneider-electric.com/doc/BBV28581/ATV12_user_manual_EN_BBV28581_05.pdf"
+ }
 ]

@@ -1,5 +1,5 @@
 # series: ATV600
-# title: Schneider Altivar Process ATV630/650/660/680/6A0/6B0/6L0
+# title: 施耐德御程 Altivar Process ATV600（ATV630/650/660/680 等）
 # source: Altivar Process ATV600 编程手册（中文版）EAV64324-14，诊断和故障检修—故障代码；P 至 V 开头的条目为摘要改写，非原文逐字，请以原手册为准
 # aliases: ATV600, ATV630, ATV650, ATV660, ATV680, ATV6A0, ATV6B0, ATV6L0, ALTIVAR PROCESS
 # format: code|name|cause|remedy|reset  (reset: power / auto / rsf / hrfc / self)
