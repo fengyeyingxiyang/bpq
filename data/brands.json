@@ -1,0 +1,420 @@
+[
+  {
+    "id": "schneider",
+    "name": "施耐德电气",
+    "aliases": [
+      "Schneider",
+      "Schneider Electric",
+      "施耐德"
+    ],
+    "families": [
+      {
+        "id": "ATV12",
+        "aliases": [
+          "ATV12"
+        ]
+      },
+      {
+        "id": "ATV312",
+        "aliases": [
+          "ATV312"
+        ]
+      },
+      {
+        "id": "ATV320",
+        "aliases": [
+          "ATV320"
+        ]
+      },
+      {
+        "id": "ATV340",
+        "aliases": [
+          "ATV340"
+        ]
+      },
+      {
+        "id": "ATV600",
+        "aliases": [
+          "ATV600",
+          "ATV630",
+          "ATV650",
+          "ATV660",
+          "ATV680"
+        ]
+      },
+      {
+        "id": "ATV900",
+        "aliases": [
+          "ATV900",
+          "ATV930",
+          "ATV950",
+          "ATV960",
+          "ATV980",
+          "ATV993"
+        ]
+      },
+      {
+        "id": "ATV61",
+        "aliases": [
+          "ATV61"
+        ]
+      },
+      {
+        "id": "ATV610",
+        "aliases": [
+          "ATV610"
+        ]
+      },
+      {
+        "id": "ATV71",
+        "aliases": [
+          "ATV71"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "abb",
+    "name": "ABB",
+    "aliases": [
+      "ABB"
+    ],
+    "families": [
+      {
+        "id": "ACS100",
+        "aliases": [
+          "ACS100"
+        ]
+      },
+      {
+        "id": "ACS150",
+        "aliases": [
+          "ACS150"
+        ]
+      },
+      {
+        "id": "ACS180",
+        "aliases": [
+          "ACS180"
+        ]
+      },
+      {
+        "id": "ACS310",
+        "aliases": [
+          "ACS310"
+        ]
+      },
+      {
+        "id": "ACS355",
+        "aliases": [
+          "ACS355"
+        ]
+      },
+      {
+        "id": "ACS380",
+        "aliases": [
+          "ACS380"
+        ]
+      },
+      {
+        "id": "ACS480",
+        "aliases": [
+          "ACS480"
+        ]
+      },
+      {
+        "id": "ACS510",
+        "aliases": [
+          "ACS510"
+        ]
+      },
+      {
+        "id": "ACS550",
+        "aliases": [
+          "ACS550"
+        ]
+      },
+      {
+        "id": "ACS580",
+        "aliases": [
+          "ACS580"
+        ]
+      },
+      {
+        "id": "ACS800",
+        "aliases": [
+          "ACS800"
+        ]
+      },
+      {
+        "id": "ACS880",
+        "aliases": [
+          "ACS880"
+        ]
+      },
+      {
+        "id": "ACQ580",
+        "aliases": [
+          "ACQ580"
+        ]
+      },
+      {
+        "id": "ACH580",
+        "aliases": [
+          "ACH580"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "siemens",
+    "name": "西门子",
+    "aliases": [
+      "Siemens",
+      "西门子"
+    ],
+    "families": [
+      {
+        "id": "SINAMICS V20",
+        "aliases": [
+          "SINAMICS V20"
+        ]
+      },
+      {
+        "id": "SINAMICS G120",
+        "aliases": [
+          "SINAMICS G120"
+        ]
+      },
+      {
+        "id": "SINAMICS G120C",
+        "aliases": [
+          "SINAMICS G120C"
+        ]
+      },
+      {
+        "id": "SINAMICS G120X",
+        "aliases": [
+          "SINAMICS G120X"
+        ]
+      },
+      {
+        "id": "SINAMICS G120P",
+        "aliases": [
+          "SINAMICS G120P"
+        ]
+      },
+      {
+        "id": "SINAMICS G120D",
+        "aliases": [
+          "SINAMICS G120D"
+        ]
+      },
+      {
+        "id": "SINAMICS S120",
+        "aliases": [
+          "SINAMICS S120"
+        ]
+      },
+      {
+        "id": "SINAMICS G130",
+        "aliases": [
+          "SINAMICS G130"
+        ]
+      },
+      {
+        "id": "SINAMICS G150",
+        "aliases": [
+          "SINAMICS G150"
+        ]
+      },
+      {
+        "id": "MASTERDRIVES",
+        "aliases": [
+          "MASTERDRIVES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "danfoss",
+    "name": "丹佛斯",
+    "aliases": [
+      "Danfoss",
+      "丹佛斯"
+    ],
+    "families": [
+      {
+        "id": "VLT FC51",
+        "aliases": [
+          "VLT FC51"
+        ]
+      },
+      {
+        "id": "VLT FC101",
+        "aliases": [
+          "VLT FC101"
+        ]
+      },
+      {
+        "id": "VLT FC102",
+        "aliases": [
+          "VLT FC102"
+        ]
+      },
+      {
+        "id": "VLT FC202",
+        "aliases": [
+          "VLT FC202"
+        ]
+      },
+      {
+        "id": "VLT FC301",
+        "aliases": [
+          "VLT FC301"
+        ]
+      },
+      {
+        "id": "VLT FC302",
+        "aliases": [
+          "VLT FC302"
+        ]
+      },
+      {
+        "id": "VLT FC360",
+        "aliases": [
+          "VLT FC360"
+        ]
+      },
+      {
+        "id": "VLT FC280",
+        "aliases": [
+          "VLT FC280"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "invt",
+    "name": "英威腾",
+    "aliases": [
+      "INVT",
+      "英威腾"
+    ],
+    "families": [
+      {
+        "id": "GD10",
+        "aliases": [
+          "GD10"
+        ]
+      },
+      {
+        "id": "GD20",
+        "aliases": [
+          "GD20"
+        ]
+      },
+      {
+        "id": "GD200A",
+        "aliases": [
+          "GD200A"
+        ]
+      },
+      {
+        "id": "GD300",
+        "aliases": [
+          "GD300"
+        ]
+      },
+      {
+        "id": "GD3000",
+        "aliases": [
+          "GD3000"
+        ]
+      },
+      {
+        "id": "GD350",
+        "aliases": [
+          "GD350"
+        ]
+      },
+      {
+        "id": "GD600",
+        "aliases": [
+          "GD600"
+        ]
+      },
+      {
+        "id": "CHF100A",
+        "aliases": [
+          "CHF100A"
+        ]
+      },
+      {
+        "id": "CHE100",
+        "aliases": [
+          "CHE100"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inovance",
+    "name": "汇川技术",
+    "aliases": [
+      "Inovance",
+      "汇川",
+      "汇川技术"
+    ],
+    "families": [
+      {
+        "id": "MD200",
+        "aliases": [
+          "MD200"
+        ]
+      },
+      {
+        "id": "MD290",
+        "aliases": [
+          "MD290"
+        ]
+      },
+      {
+        "id": "MD310",
+        "aliases": [
+          "MD310"
+        ]
+      },
+      {
+        "id": "MD320",
+        "aliases": [
+          "MD320"
+        ]
+      },
+      {
+        "id": "MD500",
+        "aliases": [
+          "MD500"
+        ]
+      },
+      {
+        "id": "MD520",
+        "aliases": [
+          "MD520"
+        ]
+      },
+      {
+        "id": "MD600",
+        "aliases": [
+          "MD600"
+        ]
+      },
+      {
+        "id": "MD800",
+        "aliases": [
+          "MD800"
+        ]
+      }
+    ]
+  }
+]
