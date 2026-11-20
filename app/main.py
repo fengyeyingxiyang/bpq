@@ -142,10 +142,17 @@ def _fault_params(entries: list[dict]) -> list[str]:
 
 
 def _site_search(codes: list[str], entries: list[dict], text: str, series_id: str | None, limit: int) -> list[dict]:
+    # Parameter references are useful only when tied to a confirmed model family.
+    # Without an explicitly selected series, same-code entries may come from several
+    # ATV generations and their parameter names can pull unrelated manual pages.
+    scoped_entries = (
+        [e for e in entries if norm(e.get("series", "")) == norm(series_id)]
+        if series_id else []
+    )
     names = " ".join(e.get("name", "") for e in entries[:3])
     return store.search(
         codes, f"{text} {names}".strip(), series_id, limit,
-        params=_fault_params(entries), snippet_size=550 if settings.small_model else 800,
+        params=_fault_params(scoped_entries), snippet_size=550 if settings.small_model else 800,
     )
 
 
