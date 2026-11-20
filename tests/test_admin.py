@@ -224,3 +224,20 @@ def test_missing_expert_file_falls_back_to_bundle(tmp_path):
     assert len(ex.families) >= 12
     kb = KnowledgeBase(tmp_path, fallback_dir="data")
     assert "X1" in kb.series and "ATV900" in kb.series  # old external folder + bundled series
+
+
+def test_site_title_default_and_custom(client):
+    j = client.get("/api/site").json()
+    assert j["title"] == "变频器故障查询"
+    r = client.put("/api/admin/site", headers=H, json={"title": "  某某矿  变频器查询系统 ", "subtitle": "仅限厂内使用"})
+    assert r.status_code == 200 and r.json()["title"] == "某某矿 变频器查询系统"
+    assert client.get("/api/site").json() == {"title": "某某矿 变频器查询系统", "subtitle": "仅限厂内使用"}
+    assert client.put("/api/admin/site", json={"title": "x"}).status_code == 401
+    assert len(client.put("/api/admin/site", headers=H, json={"title": "长" * 100}).json()["title"]) == 40
+    client.put("/api/admin/site", headers=H, json={"title": ""})  # reset
+    assert client.get("/api/site").json()["title"] == "变频器故障查询"
+
+
+def test_site_title_from_env(client, monkeypatch):
+    monkeypatch.setattr(main.settings, "site_title", "环境变量标题")
+    assert client.get("/api/site").json()["title"] == "环境变量标题"

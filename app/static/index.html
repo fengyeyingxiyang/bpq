@@ -84,8 +84,8 @@
 <body>
 <main>
   <header>
-    <h1>变频器故障查询</h1>
-    <div class="sub">输入故障代码，或拍下面板照片，给出说明、原因和处理办法</div>
+    <h1 id="siteTitle">变频器故障查询</h1>
+    <div class="sub" id="siteSub">输入故障代码，或拍下面板照片，给出说明、原因和处理办法</div>
   </header>
 
   <form id="form" class="card" autocomplete="off">
@@ -178,6 +178,11 @@
   }
 
   // ---- series list
+  fetch('/api/site').then(function (r) { return r.json(); }).then(function (c) {
+    document.getElementById('siteTitle').textContent = c.title;
+    document.getElementById('siteSub').textContent = c.subtitle;
+    document.title = c.title;
+  }).catch(function () {});
   fetch('/api/series').then(function (r) { return r.json(); }).then(function (list) {
     list.forEach(function (s) {
       var o = document.createElement('option');

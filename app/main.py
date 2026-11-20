@@ -149,6 +149,28 @@ def _site_search(codes: list[str], entries: list[dict], text: str, series_id: st
     )
 
 
+# ------------------------------------------------------------ site title
+DEFAULT_TITLE = "变频器故障查询"
+DEFAULT_SUBTITLE = "输入故障代码，或拍下面板照片，给出说明、原因和处理办法"
+
+
+def _site_path() -> Path:
+    return Path(settings.local_dir) / "site.json"
+
+
+def _site() -> dict:
+    """Title/subtitle shown on the query page: admin setting > SITE_TITLE in .env > built-in default."""
+    data: dict = {}
+    try:
+        data = json.loads(_site_path().read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        pass
+    title = str(data.get("title") or settings.site_title or DEFAULT_TITLE).strip()[:40]
+    sub = data.get("subtitle")
+    sub = DEFAULT_SUBTITLE if sub is None else str(sub).strip()[:80]
+    return {"title": title or DEFAULT_TITLE, "subtitle": sub}
+
+
 # ---------------------------------------------------------------- rate limit
 _hits: dict[str, deque[float]] = defaultdict(deque)
 _admin_fail: dict[str, deque[float]] = defaultdict(deque)
@@ -272,6 +294,11 @@ def health() -> dict:
         "profile": "small" if settings.small_model else "full",
         "families": len(expert.families),
     }
+
+
+@app.get("/api/site")
+def site() -> dict:
+    return _site()
 
 
 @app.get("/api/series")
@@ -667,6 +694,29 @@ async def admin_search_test(code: str = Form(""), text: str = Form(""), series: 
         "entries": [{"series": e["series"], "code": e["code"], "name": e["name"]} for e in entry_dicts],
         "hits": hits,
     }
+
+
+class SiteIn(BaseModel):
+    title: str = ""
+    subtitle: str | None = None
+
+
+@admin.get("/site")
+def admin_get_site() -> dict:
+    return {**_site(), "default_title": settings.site_title or DEFAULT_TITLE, "default_subtitle": DEFAULT_SUBTITLE}
+
+
+@admin.put("/site")
+def admin_set_site(body: SiteIn) -> dict:
+    """Empty title = go back to the .env / built-in default."""
+    data = {"title": " ".join(body.title.split())[:40]}
+    if body.subtitle is not None:
+        data["subtitle"] = " ".join(body.subtitle.split())[:80]
+    Path(settings.local_dir).mkdir(parents=True, exist_ok=True)
+    tmp = _site_path().with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(_site_path())
+    return _site()
 
 
 @admin.post("/reload")

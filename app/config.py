@@ -84,6 +84,7 @@ class Settings:
         if len(raw_token) >= 2 and raw_token[0] == raw_token[-1] and raw_token[0] in "\"'":
             raw_token = raw_token[1:-1].strip()  # docker env_file keeps quotes literally; drop them
         self.admin_token = raw_token  # empty = admin features disabled
+        self.site_title = os.getenv("SITE_TITLE", "").strip()[:40]  # default page title; the admin page can override it
         self.max_upload_mb = float(os.getenv("MAX_UPLOAD_MB", "60"))
         self.max_import_mb = float(os.getenv("MAX_IMPORT_MB", "200"))  # official manuals are big
         self.provider = _provider()  # none | anthropic | openai | ollama

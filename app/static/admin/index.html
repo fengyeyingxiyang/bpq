@@ -178,6 +178,14 @@
     <!-- tools -->
     <section id="tab-tools" class="hide">
       <div class="card">
+        <h2>页面标题</h2>
+        <div class="sub">显示在查询页顶部和浏览器标签上，例如“××矿选煤厂变频器故障查询系统”。保存后刷新查询页即生效。标题留空保存＝恢复默认。</div>
+        <label for="siteT">标题（最多 40 字）</label><input id="siteT" maxlength="40" placeholder="××厂变频器故障查询系统">
+        <label for="siteS">副标题（最多 80 字，可留空）</label><input id="siteS" maxlength="80">
+        <div class="actions"><button class="primary" id="btnSite">保存标题</button></div>
+        <div id="siteMsg"></div>
+      </div>
+      <div class="card">
         <h2>备份</h2>
         <div class="sub">下载本厂录入的全部内容（条目、资料、图纸、PDF）。服务器重装前务必备份，也可以直接复制服务器上的 local 文件夹。</div>
         <div class="actions"><button class="primary" id="btnExport">下载备份 zip</button></div>
@@ -234,7 +242,7 @@
       fill($('eReset'), [['', '（不填）']].concat(Object.keys(j.reset_labels).map(function (k) { return [k, j.reset_labels[k]]; })));
       $('seriesList').innerHTML = j.series.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('');
       showStats(j.stats);
-      loadDocs(); loadEntries(); loadCatalog(); pollJobs(); loadInbox();
+      loadDocs(); loadEntries(); loadCatalog(); pollJobs(); loadInbox(); loadSite();
     }).catch(function (e) {
       token = ''; try { sessionStorage.removeItem('adm'); } catch (x) {}
       $('login').classList.remove('hide'); $('app').classList.add('hide');
@@ -389,6 +397,16 @@
       });
       $('testOut').innerHTML = h;
     }).catch(function (e) { $('testOut').innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; });
+  };
+
+  // ---- page title
+  function loadSite() {
+    api('GET', '/site').then(function (j) { $('siteT').value = j.title === j.default_title && j.title === '变频器故障查询' ? '' : j.title; $('siteT').placeholder = j.default_title; $('siteS').value = j.subtitle; }).catch(function () {});
+  }
+  $('btnSite').onclick = function () {
+    apiJson('PUT', '/site', { title: $('siteT').value, subtitle: $('siteS').value }).then(function (j) {
+      $('siteT').value = j.title; $('siteS').value = j.subtitle; msg('siteMsg', '已保存：' + j.title + '。刷新查询页即可看到。');
+    }).catch(function (e) { msg('siteMsg', e.message, 'err'); });
   };
 
   // ---- entries
