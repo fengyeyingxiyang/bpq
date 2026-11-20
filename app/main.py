@@ -24,7 +24,7 @@ from starlette.concurrency import run_in_threadpool
 from .config import BUNDLE_DIR, FROZEN, Settings, bundled_data_dir, data_file
 from . import importer
 from .expert import Expert
-from .kb import RESET_LABELS, KnowledgeBase
+from .kb import RESET_LABELS, KnowledgeBase, norm
 from .llm import LLM, LLMError, parse_json_object
 from .store import KINDS, LocalStore, StoreError
 
