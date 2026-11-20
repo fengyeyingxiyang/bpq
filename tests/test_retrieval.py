@@ -115,6 +115,58 @@ def test_inbox_catalog_name_gives_title(store):
     assert res[0]["series"] == "ATV71" and res[0]["title"].startswith("ATV71")
 
 
+def test_site_search_keeps_series_separate_and_matches_fault_code(store, monkeypatch):
+    add_manual(
+        store, "ATV900 编程手册", "ATV900",
+        {
+            100: "OBF 直流总线过压。延长减速时间，检查电源电压。",
+            521: "[编码器滤波激活] FFA 参数设置，滤波器使能。",
+        },
+    )
+    add_manual(
+        store, "ATV320 编程手册", "ATV320",
+        {
+            200: "ObF 直流母线过电压。延长减速时间，检查电源电压。",
+            310: "[编码器滤波激活] FFA 参数设置，滤波器使能。",
+        },
+    )
+    class SearchSpy:
+        def __init__(self, inner):
+            self.inner = inner
+            self.calls = []
+
+        def search(self, codes, text, series, limit, params=None, snippet_size=700):
+            self.calls.append({"series": series, "params": list(params or [])})
+            return self.inner.search(codes, text, series, limit, params, snippet_size)
+
+    spy = SearchSpy(store)
+    monkeypatch.setattr(main, "store", spy)
+    entries = [
+        {
+            "series": "ATV900", "code": "OBF", "name": "直流总线过压",
+            "cause": "直流总线电压过高", "remedy": "延长减速时间；检查电源电压；检查制动回路 BRA。",
+        },
+        {
+            "series": "ATV320", "code": "ObF", "name": "DC 总线过电压",
+            "cause": "制动太突然或电源电压过高", "remedy": "延长减速时间；检查编码器滤波激活 FFA。",
+        },
+    ]
+
+    hits = main._site_search(["OBF"], entries, "OBF", None, 8)
+    by_series = {}
+    for hit in hits:
+        by_series.setdefault(hit["series"], set()).add(hit["page"])
+
+    # Both series remain searchable, but ATV320-only FFA evidence cannot leak into ATV900.
+    assert 100 in by_series.get("ATV900", set())
+    assert 200 in by_series.get("ATV320", set())
+    assert 521 not in by_series.get("ATV900", set())
+    calls = {call["series"]: call["params"] for call in spy.calls}
+    assert "ATV900" in calls and "ATV320" in calls
+    assert "FFA" not in calls["ATV900"]
+    assert "FFA" in calls["ATV320"]
+
+
 def test_search_test_endpoint():
     with TestClient(main.app) as c:
         r = c.post("/api/admin/search-test", headers=H, data={"code": "OCF", "series": "ATV320"})

@@ -7,9 +7,10 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from .brands import BrandRegistry
+
 log = logging.getLogger("kb")
 
-# How the drive clears this fault (shown to the user, Chinese labels).
 RESET_LABELS = {
     "power": "需排除原因后断电重启，不能自动复位",
     "auto": "排除原因后可复位，或开启自动重启功能",
@@ -37,7 +38,7 @@ class Entry:
     reset: str
     source: str
     id: str = ""
-    origin: str = "manual"  # manual = from the manuals in data/, local = entered by the admin
+    origin: str = "manual"
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -49,6 +50,10 @@ class KnowledgeBase:
     def __init__(self, data_dir: str | Path, fallback_dir: str | Path | None = None):
         self.data_dir = Path(data_dir)
         self.fallback_dir = Path(fallback_dir) if fallback_dir else None
+        brand_file = self.data_dir / "brands.json"
+        if not brand_file.is_file() and self.fallback_dir:
+            brand_file = self.fallback_dir / "brands.json"
+        self.brand_registry = BrandRegistry.load(brand_file)
         self._base_series: dict[str, dict] = {}
         self._base_entries: list[Entry] = []
         self._base_alias: dict[str, str] = {}
@@ -59,33 +64,39 @@ class KnowledgeBase:
         self._alias: dict[str, str] = {}
         self.load()
 
-    # ------------------------------------------------------------------ load
     def load(self) -> None:
-        """(Re)read the manual files in data_dir; entries added by the admin are kept."""
+        """(Re)read manual files; admin-entered entries are kept."""
         self._base_series, self._base_entries, self._base_alias = {}, [], {}
         files = {p.name: p for p in self.fallback_dir.glob("*.psv")} if self.fallback_dir and self.fallback_dir.is_dir() else {}
-        files.update({p.name: p for p in self.data_dir.glob("*.psv")})  # an external file overrides the bundled one
+        files.update({p.name: p for p in self.data_dir.glob("*.psv")})
         for name in sorted(files):
             self._load_file(files[name])
         self._rebuild()
         log.info("knowledge base: %d series, %d entries", len(self.series), len(self.entries))
 
     def set_local(self, entries: list[Entry]) -> None:
-        """Replace the entries the admin entered on site (they are listed before the manual ones)."""
         self._local = list(entries)
         self._rebuild()
 
     def canonical_series(self, text: str) -> str:
-        """Existing series id for the text, or the text itself (upper-case) for a new series."""
         return self.resolve_series(text) or (text or "").strip().upper()[:40]
 
     def _rebuild(self) -> None:
         self.series = {k: dict(v) for k, v in self._base_series.items()}
         self._alias = dict(self._base_alias)
+        for info in self.series.values():
+            match = self.brand_registry.identify(info["id"])
+            if match:
+                info["brand"] = match["brand"]
+                info["brand_name"] = match["brand_name"]
         self.entries, self._index = [], {}
         for e in self._local:
             if e.series not in self.series:
-                self.series[e.series] = {"id": e.series, "title": e.series, "source": "现场录入", "count": 0}
+                info = {"id": e.series, "title": e.series, "source": "现场录入", "count": 0}
+                match = self.brand_registry.identify(e.series)
+                if match:
+                    info.update(brand=match["brand"], brand_name=match["brand_name"])
+                self.series[e.series] = info
                 self._alias[norm(e.series)] = e.series
         for e in self._local + self._base_entries:
             self.entries.append(e)
@@ -116,6 +127,10 @@ class KnowledgeBase:
             "source": meta.get("source", ""),
             "count": 0,
         }
+        brand_match = self.brand_registry.identify(meta.get("brand", "") + " " + series_id)
+        if brand_match:
+            info["brand"] = meta.get("brand_id", brand_match["brand"])
+            info["brand_name"] = brand_match["brand_name"]
         self._base_series[series_id] = info
         self._base_alias[norm(series_id)] = series_id
         for alias in meta.get("aliases", "").split(","):
@@ -128,22 +143,22 @@ class KnowledgeBase:
                 if code:
                     self._base_entries.append(Entry(series_id, code, name, cause, remedy, reset, info["source"]))
 
-    # ---------------------------------------------------------------- series
     def resolve_series(self, text: str) -> str | None:
-        """Map user text such as 'atv630' or 'ATV 12' to a series id."""
+        """Resolve known manual aliases first, then supported vendor model families."""
         n = norm(text or "")
         if not n:
             return None
         if n in self._alias:
             return self._alias[n]
-        # e.g. "atv610hd15n4" contains both "atv61" and "atv610": the longest alias wins
-        hits = [(len(alias), sid) for alias, sid in self._alias.items() if alias in n]
-        return max(hits)[1] if hits else None
+        hits = [(len(alias), sid) for alias, sid in self._alias.items() if alias and alias in n]
+        if hits:
+            return max(hits)[1]
+        match = self.brand_registry.identify(text)
+        return match["series"] if match and match.get("series") else None
 
     def series_list(self) -> list[dict]:
         return [dict(s) for s in self.series.values()]
 
-    # ---------------------------------------------------------------- lookup
     def lookup(self, code: str, series: str | None = None) -> list[Entry]:
         found = self._index.get(norm(code), [])
         if series:
@@ -153,11 +168,6 @@ class KnowledgeBase:
         return list(found)
 
     def extract_codes(self, text: str) -> tuple[list[str], list[str]]:
-        """Find fault codes in free text.
-
-        Returns (exact_codes, approximate_codes); approximate ones are fuzzy
-        matches of tokens that are not codes themselves (e.g. a typo).
-        """
         exact: list[str] = []
         approx: list[str] = []
         seen: set[str] = set()
@@ -181,7 +191,7 @@ class KnowledgeBase:
         return exact, approx
 
     def search_text(self, query: str, series: str | None = None, limit: int = 5) -> list[Entry]:
-        """Very small keyword search over name/cause/remedy (English words)."""
+        """Small keyword search over structured fault entries."""
         words = [w for w in re.findall(r"[a-z]{3,}", (query or "").lower())]
         if not words:
             return []
