@@ -11,6 +11,7 @@ import logging
 import re
 from pathlib import Path
 
+from .config import data_file
 from .kb import norm
 
 log = logging.getLogger("expert")
@@ -21,7 +22,7 @@ class Expert:
         self.families: dict[str, dict] = {}
         self._code_map: dict[str, str] = {}
         self._symptoms: list[dict] = []
-        path = Path(data_dir) / "expert" / "families.json"
+        path = data_file(data_dir, "expert/families.json")
         try:
             doc = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:

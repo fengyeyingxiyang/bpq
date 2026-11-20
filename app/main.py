@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
 
-from .config import BUNDLE_DIR, Settings
+from .config import BUNDLE_DIR, FROZEN, Settings, bundled_data_dir, data_file
 from . import importer
 from .expert import Expert
 from .kb import RESET_LABELS, KnowledgeBase
@@ -33,7 +33,7 @@ log = logging.getLogger("app")
 
 settings = Settings()
 log.info("admin features: %s", "enabled" if settings.admin_token else f"DISABLED (ADMIN_TOKEN empty) {settings.admin_hint()}")
-kb = KnowledgeBase(settings.data_dir)
+kb = KnowledgeBase(settings.data_dir, fallback_dir=bundled_data_dir() if FROZEN else None)
 llm = LLM(settings)
 expert = Expert(settings.data_dir)
 store = LocalStore(settings.local_dir)
@@ -106,7 +106,7 @@ _PARAM_RE = re.compile(r"\[([^\]\[]{2,40})\]\s*([A-Za-z][A-Za-z0-9]{1,6})?")
 
 def _catalog() -> list[dict]:
     try:
-        return json.loads((Path(settings.data_dir) / "manuals_catalog.json").read_text(encoding="utf-8"))
+        return json.loads(data_file(settings.data_dir, "manuals_catalog.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return []
 
@@ -605,7 +605,7 @@ def admin_delete_doc(doc_id: str) -> dict:
 @admin.get("/catalog")
 def admin_catalog() -> list[dict]:
     """Official manuals we know a download link for, with whether they are already imported."""
-    path = Path(settings.data_dir) / "manuals_catalog.json"
+    path = data_file(settings.data_dir, "manuals_catalog.json")
     try:
         items = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):

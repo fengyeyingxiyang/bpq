@@ -14,7 +14,9 @@ BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.paren
 
 def load_dotenv() -> None:
     """Minimal .env loader for the standalone binary (Docker passes env vars itself)."""
-    for path in (APP_DIR / ".env", Path.cwd() / ".env"):
+    # ".env.txt" / "env.txt": what Windows gives you when file extensions are hidden
+    names = (".env", ".env.txt", "env.txt")
+    for path in [APP_DIR / n for n in names] + [Path.cwd() / ".env"]:
         if not path.is_file():
             continue
         for raw in path.read_text(encoding="utf-8-sig").splitlines():
@@ -26,6 +28,17 @@ def load_dotenv() -> None:
             if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                 value = value[1:-1]
             os.environ.setdefault(key.strip(), value)
+
+
+def bundled_data_dir() -> Path:
+    """The data folder shipped inside the program (used for files missing from an older external data folder)."""
+    return BUNDLE_DIR / "data"
+
+
+def data_file(data_dir: str | Path, rel: str) -> Path:
+    """data_dir/rel, or the copy bundled in the program when the external data folder lacks it."""
+    p = Path(data_dir) / rel
+    return p if p.is_file() else bundled_data_dir() / rel
 
 
 def _default_data_dir() -> str:
@@ -106,7 +119,18 @@ class Settings:
                 except OSError:
                     pass
             files.append({"path": str(path), "exists": path.is_file(), "has_token": has_key})
+        example = APP_DIR / ".env.example"
+        example_token = False
+        if example.is_file():
+            try:
+                example_token = any(
+                    ln.strip().startswith("ADMIN_TOKEN") and ln.partition("=")[2].strip().strip("\"'") != ""
+                    for ln in example.read_text(encoding="utf-8-sig").splitlines()
+                )
+            except OSError:
+                pass
         return {
+            "example_has_token": example_token and not any(f["exists"] for f in files),
             "frozen": FROZEN,
             "in_docker": Path("/.dockerenv").exists(),
             "variable_present": "ADMIN_TOKEN" in os.environ,

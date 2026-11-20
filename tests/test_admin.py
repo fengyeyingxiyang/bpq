@@ -192,3 +192,35 @@ def test_token_quotes_stripped(monkeypatch):
     monkeypatch.setenv("ADMIN_TOKEN", '"abc123"')
     from app.config import Settings
     assert Settings().admin_token == "abc123"
+
+
+def test_env_example_hint(monkeypatch, tmp_path):
+    from app import config
+    (tmp_path / ".env.example").write_text("ADMIN_TOKEN=abc123\n", encoding="utf-8")
+    monkeypatch.setattr(config, "APP_DIR", tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("ADMIN_TOKEN", raising=False)
+    hint = config.Settings().admin_hint()
+    assert hint["example_has_token"] is True
+
+
+def test_dotenv_txt_variant(monkeypatch, tmp_path):
+    from app import config
+    (tmp_path / ".env.txt").write_text("MY_TEST_VAR_X=hello\n", encoding="utf-8")
+    monkeypatch.setattr(config, "APP_DIR", tmp_path)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("MY_TEST_VAR_X", raising=False)
+    config.load_dotenv()
+    import os
+    assert os.environ.get("MY_TEST_VAR_X") == "hello"
+    monkeypatch.delenv("MY_TEST_VAR_X", raising=False)
+
+
+def test_missing_expert_file_falls_back_to_bundle(tmp_path):
+    from app.expert import Expert
+    from app.kb import KnowledgeBase
+    (tmp_path / "x.psv").write_text("# series: X1\nAAA|名|因|法|power\n", encoding="utf-8")
+    ex = Expert(tmp_path)  # tmp_path has no expert/families.json -> bundled copy is used
+    assert len(ex.families) >= 12
+    kb = KnowledgeBase(tmp_path, fallback_dir="data")
+    assert "X1" in kb.series and "ATV900" in kb.series  # old external folder + bundled series

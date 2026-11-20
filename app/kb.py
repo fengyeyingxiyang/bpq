@@ -46,8 +46,9 @@ class Entry:
 
 
 class KnowledgeBase:
-    def __init__(self, data_dir: str | Path):
+    def __init__(self, data_dir: str | Path, fallback_dir: str | Path | None = None):
         self.data_dir = Path(data_dir)
+        self.fallback_dir = Path(fallback_dir) if fallback_dir else None
         self._base_series: dict[str, dict] = {}
         self._base_entries: list[Entry] = []
         self._base_alias: dict[str, str] = {}
@@ -62,8 +63,10 @@ class KnowledgeBase:
     def load(self) -> None:
         """(Re)read the manual files in data_dir; entries added by the admin are kept."""
         self._base_series, self._base_entries, self._base_alias = {}, [], {}
-        for path in sorted(self.data_dir.glob("*.psv")):
-            self._load_file(path)
+        files = {p.name: p for p in self.fallback_dir.glob("*.psv")} if self.fallback_dir and self.fallback_dir.is_dir() else {}
+        files.update({p.name: p for p in self.data_dir.glob("*.psv")})  # an external file overrides the bundled one
+        for name in sorted(files):
+            self._load_file(files[name])
         self._rebuild()
         log.info("knowledge base: %d series, %d entries", len(self.series), len(self.entries))
 

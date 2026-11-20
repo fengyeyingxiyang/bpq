@@ -451,7 +451,8 @@
     var lines = ['程序类型：' + (d.in_docker ? 'Docker 容器' : d.frozen ? '独立程序' : '源码运行'),
       '环境变量 ADMIN_TOKEN：' + (d.variable_present ? '存在，但是空的' : '不存在')];
     (d.env_files || []).forEach(function (f) { lines.push('.env 位置 ' + f.path + '：' + (f.exists ? (f.has_token ? '找到，里面有 ADMIN_TOKEN' : '找到，但里面没有有效的 ADMIN_TOKEN 行') : '不存在')); });
-    $('offDetail').innerHTML = lines.map(esc).join('<br>');
+    var warn = d.example_has_token ? '<div class="msg err"><b>找到原因：</b>你把令牌写在了 <b>.env.example</b> 里，但程序只读名为 <b>.env</b> 的文件。请把 .env.example 复制一份，改名为 <b>.env</b>（或用记事本“另存为”，文件名填 .env，保存类型选“所有文件”），然后关闭程序窗口重新启动。</div>' : '';
+    $('offDetail').innerHTML = warn + lines.map(esc).join('<br>');
     $('adminOff').classList.remove('hide');
   }).catch(function () {});
 
