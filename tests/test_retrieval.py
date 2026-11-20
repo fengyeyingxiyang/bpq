@@ -130,7 +130,17 @@ def test_site_search_keeps_series_separate_and_matches_fault_code(store, monkeyp
             310: "[编码器滤波激活] FFA 参数设置，滤波器使能。",
         },
     )
-    monkeypatch.setattr(main, "store", store)
+    class SearchSpy:
+        def __init__(self, inner):
+            self.inner = inner
+            self.calls = []
+
+        def search(self, codes, text, series, limit, params=None, snippet_size=700):
+            self.calls.append({"series": series, "params": list(params or [])})
+            return self.inner.search(codes, text, series, limit, params, snippet_size)
+
+    spy = SearchSpy(store)
+    monkeypatch.setattr(main, "store", spy)
     entries = [
         {
             "series": "ATV900", "code": "OBF", "name": "直流总线过压",
@@ -151,7 +161,10 @@ def test_site_search_keeps_series_separate_and_matches_fault_code(store, monkeyp
     assert 100 in by_series.get("ATV900", set())
     assert 200 in by_series.get("ATV320", set())
     assert 521 not in by_series.get("ATV900", set())
-    assert 310 in by_series.get("ATV320", set())
+    calls = {call["series"]: call["params"] for call in spy.calls}
+    assert "ATV900" in calls and "ATV320" in calls
+    assert "FFA" not in calls["ATV900"]
+    assert "FFA" in calls["ATV320"]
 
 
 def test_search_test_endpoint():
