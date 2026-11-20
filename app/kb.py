@@ -20,12 +20,12 @@ RESET_LABELS = {
     "": "",
 }
 
-_TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9]{1,5}(?:\\.[A-Za-z])?")
+_TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9]{1,5}(?:\.[A-Za-z])?")
 
 
 def norm(code: str) -> str:
     """Normalize a code for lookup: lower case, drop spaces/dashes/dots."""
-    return re.sub(r"[\\s\\-_.]", "", code).lower()
+    return re.sub(r"[\s\-_.]", "", code).lower()
 
 
 @dataclass
