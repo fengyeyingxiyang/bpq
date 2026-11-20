@@ -142,18 +142,64 @@ def _fault_params(entries: list[dict]) -> list[str]:
 
 
 def _site_search(codes: list[str], entries: list[dict], text: str, series_id: str | None, limit: int) -> list[dict]:
-    # Parameter references are useful only when tied to a confirmed model family.
-    # Without an explicitly selected series, same-code entries may come from several
-    # ATV generations and their parameter names can pull unrelated manual pages.
-    scoped_entries = (
-        [e for e in entries if norm(e.get("series", "")) == norm(series_id)]
-        if series_id else []
-    )
-    names = " ".join(e.get("name", "") for e in entries[:3])
-    return store.search(
-        codes, f"{text} {names}".strip(), series_id, limit,
-        params=_fault_params(scoped_entries), snippet_size=550 if settings.small_model else 800,
-    )
+    """Search every matching series independently so parameters never leak across models.
+
+    With no selected series, keep multi-series lookup, but derive parameter terms from
+    each series' own matching fault entries. Exact fault-code hits remain available
+    across all series; parameter pages are supporting evidence for that series only.
+    """
+    grouped: dict[str, list[dict]] = {}
+    for entry in entries:
+        entry_series = str(entry.get("series", "") or "").strip()
+        if series_id and norm(entry_series) != norm(series_id):
+            continue
+        key = norm(entry_series) or "__unscoped__"
+        grouped.setdefault(key, []).append(entry)
+
+    # No fault-library match: search exact codes and user wording only. Do not guess
+    # parameter names from unrelated entries or other models.
+    if not grouped:
+        return store.search(
+            codes, text, series_id, limit,
+            params=[], snippet_size=550 if settings.small_model else 800,
+        )
+
+    merged: list[dict] = []
+    for group in grouped.values():
+        group_series = group[0].get("series") or None
+        names = " ".join(e.get("name", "") for e in group[:4])
+        descriptions = " ".join(
+            " ".join((e.get("cause", ""), e.get("remedy", ""))).strip()
+            for e in group[:4]
+        )
+        query = " ".join(x for x in (text, names, descriptions) if x).strip()
+        hits = store.search(
+            codes, query, group_series, max(2, limit),
+            params=_fault_params(group),
+            snippet_size=550 if settings.small_model else 800,
+        )
+        merged.extend(hits)
+
+    # Deduplicate pages reached through multiple entries and preserve series diversity.
+    unique: dict[tuple, dict] = {}
+    for hit in merged:
+        key = (hit.get("doc_id"), hit.get("page"), hit.get("file"))
+        if key not in unique or hit.get("score", 0) > unique[key].get("score", 0):
+            unique[key] = hit
+    ranked = sorted(unique.values(), key=lambda x: x.get("score", 0), reverse=True)
+    selected: list[dict] = []
+    per_series: dict[str, int] = {}
+    # First pass: avoid allowing one series' multiple parameter pages to crowd out
+    # the exact-code pages from other matching series.
+    for hit in ranked:
+        key = norm(hit.get("series", "")) or "__unscoped__"
+        if per_series.get(key, 0) >= 2:
+            continue
+        selected.append(hit)
+        per_series[key] = per_series.get(key, 0) + 1
+        if len(selected) >= limit:
+            break
+    return selected
 
 
 # ------------------------------------------------------------ site title
